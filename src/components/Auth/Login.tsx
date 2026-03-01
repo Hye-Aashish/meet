@@ -54,9 +54,9 @@ export const Login: React.FC = () => {
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-50 group-hover:opacity-100 transition-opacity" />
 
                     <div className="text-center mb-8">
-                        <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-500/20">
+                        <Link to="/" className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-500/20 hover:scale-110 transition-transform">
                             <LogIn className="w-8 h-8 text-blue-500" />
-                        </div>
+                        </Link>
                         <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
                         <p className="text-white/40 text-sm">Please log in to your account</p>
                     </div>

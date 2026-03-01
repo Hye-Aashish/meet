@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { LandingPage } from './components/LandingPage';
 import { JoinScreen } from './components/JoinScreen';
 import { MeetingRoom } from './components/MeetingRoom';
 import { Login } from './components/Auth/Login';
@@ -14,7 +15,8 @@ export default function App() {
     <BrowserRouter>
       <div className="min-h-screen">
         <Routes>
-          <Route path="/" element={<JoinScreen />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/join" element={<JoinScreen />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/meeting/:roomId" element={<MeetingRoom />} />
