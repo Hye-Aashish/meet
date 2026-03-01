@@ -154,6 +154,38 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                 </button>
             </div>
 
+            {/* Mobile Bottom Navigation */}
+            <div className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-brand-card/80 backdrop-blur-2xl border-t border-white/10 px-6 flex items-center justify-between z-50">
+                {navItems.filter(item => ['Dashboard', 'Meetings', 'Recordings', 'Settings'].includes(item.label)).map((item) => {
+                    const isActive = location.pathname === item.path ||
+                        (item.path !== '/admin' && location.pathname.startsWith(item.path));
+                    return (
+                        <button
+                            key={item.path}
+                            onClick={() => navigate(item.path)}
+                            className="flex flex-col items-center gap-1 relative"
+                        >
+                            <item.icon className={cn(
+                                "w-5 h-5 transition-all text-sm px-0 py-0 leading-none",
+                                isActive ? "text-blue-500 scale-110" : "text-white/30"
+                            )} />
+                            <span className={cn(
+                                "text-[10px] font-bold uppercase tracking-widest transition-all",
+                                isActive ? "text-blue-500" : "text-white/20"
+                            )}>
+                                {item.label === 'Dashboard' ? 'Home' : item.label}
+                            </span>
+                            {isActive && (
+                                <motion.div
+                                    layoutId="mobile-nav-indicator"
+                                    className="absolute -top-3 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-blue-500 shadow-lg shadow-blue-500/50"
+                                />
+                            )}
+                        </button>
+                    );
+                })}
+            </div>
+
             {/* Desktop Sidebar */}
             <motion.aside
                 initial={false}
