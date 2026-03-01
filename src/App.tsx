@@ -1,0 +1,36 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { JoinScreen } from './components/JoinScreen';
+import { MeetingRoom } from './components/MeetingRoom';
+import { Login } from './components/Auth/Login';
+import { Register } from './components/Auth/Register';
+import { AdminLayout } from './components/AdminPanel/AdminLayout';
+import { Dashboard } from './components/AdminPanel/Dashboard';
+import { MeetingsPage } from './components/AdminPanel/MeetingsPage';
+import { RecordingsPage } from './components/AdminPanel/RecordingsPage';
+import { SettingsPage } from './components/AdminPanel/SettingsPage';
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <div className="min-h-screen">
+        <Routes>
+          <Route path="/" element={<JoinScreen />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/meeting/:roomId" element={<MeetingRoom />} />
+
+          {/* Admin Panel Routes */}
+          <Route path="/admin" element={<AdminLayout><Dashboard /></AdminLayout>} />
+          <Route path="/admin/meetings" element={<AdminLayout><MeetingsPage /></AdminLayout>} />
+          <Route path="/admin/recordings" element={<AdminLayout><RecordingsPage /></AdminLayout>} />
+          <Route path="/admin/scheduled" element={<AdminLayout><MeetingsPage /></AdminLayout>} />
+          <Route path="/admin/participants" element={<AdminLayout><Dashboard /></AdminLayout>} />
+          <Route path="/admin/analytics" element={<AdminLayout><Dashboard /></AdminLayout>} />
+          <Route path="/admin/settings" element={<AdminLayout><SettingsPage /></AdminLayout>} />
+
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </div>
+    </BrowserRouter>
+  );
+}
