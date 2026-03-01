@@ -43,23 +43,35 @@ export const Dashboard: React.FC = () => {
 
     const fetchMeetings = async () => {
         try {
-            const res = await fetch('/api/meetings');
+            const userId = localStorage.getItem('nexus_user_id');
+            const res = await fetch('/api/meetings', {
+                headers: { 'x-user-id': userId || '' }
+            });
             if (res.ok) {
                 const data = await res.json();
                 setMeetings(data);
                 setActiveMeetings(data.filter((m: Meeting) => m.status === 'active').length);
+            } else {
+                setMeetings([]);
+                setActiveMeetings(0);
             }
         } catch (err) {
             console.error('Failed to fetch meetings:', err);
+            setMeetings([]);
+            setActiveMeetings(0);
         }
     };
 
     const handleCreateInstant = async () => {
         const roomId = Math.random().toString(36).substring(2, 10).toUpperCase();
         try {
+            const userId = localStorage.getItem('nexus_user_id');
             const res = await fetch('/api/meetings', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-user-id': userId || ''
+                },
                 body: JSON.stringify({
                     title: newTitle || `Meeting ${roomId}`,
                     roomId,

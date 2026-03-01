@@ -12,7 +12,13 @@ export const Login: React.FC = () => {
 
     React.useEffect(() => {
         const user = localStorage.getItem('nexus_user');
-        if (user) navigate('/');
+        if (user) {
+            navigate('/');
+        } else {
+            // Only clear if not already logged in to avoid infinite loops if navigate is trigger happy
+            // but we want to ensure stale data is gone
+            localStorage.clear();
+        }
     }, [navigate]);
 
     const handleLogin = async (e: React.FormEvent) => {

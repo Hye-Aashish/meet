@@ -121,9 +121,13 @@ export const MeetingsPage: React.FC = () => {
     const handleUpdate = async () => {
         if (!editingMeeting) return;
         try {
+            const userId = localStorage.getItem('nexus_user_id');
             const res = await fetch(`/api/meetings/${editingMeeting.id}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-user-id': userId || ''
+                },
                 body: JSON.stringify({
                     title: formTitle,
                     scheduledAt: formSchedule || null,
@@ -151,7 +155,11 @@ export const MeetingsPage: React.FC = () => {
 
     const handleDelete = async (id: string) => {
         try {
-            const res = await fetch(`/api/meetings/${id}`, { method: 'DELETE' });
+            const userId = localStorage.getItem('nexus_user_id');
+            const res = await fetch(`/api/meetings/${id}`, {
+                method: 'DELETE',
+                headers: { 'x-user-id': userId || '' }
+            });
             if (res.ok) {
                 setDeleteConfirm(null);
                 fetchMeetings();
@@ -163,9 +171,13 @@ export const MeetingsPage: React.FC = () => {
 
     const handleEndMeeting = async (id: string) => {
         try {
+            const userId = localStorage.getItem('nexus_user_id');
             const res = await fetch(`/api/meetings/${id}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-user-id': userId || ''
+                },
                 body: JSON.stringify({ status: 'ended' }),
             });
             if (res.ok) {

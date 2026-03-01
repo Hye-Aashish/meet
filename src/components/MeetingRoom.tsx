@@ -15,6 +15,8 @@ import { VideoGrid } from './MeetingRoom/VideoGrid';
 import { SettingsModal } from './MeetingRoom/SettingsModal';
 import { ElectronScreenPicker } from './MeetingRoom/ScreenShareModal';
 import { ScreenMonitorModal } from './MeetingRoom/ScreenMonitorModal';
+import { AIAssistant } from './MeetingRoom/AIAssistant';
+
 
 export const MeetingRoom: React.FC = () => {
   const { roomId } = useParams<{ roomId: string }>();
@@ -36,6 +38,8 @@ export const MeetingRoom: React.FC = () => {
   const [activeSidebarTab, setActiveSidebarTab] = useState<'chat' | 'participants'>('chat');
   const [showSettings, setShowSettings] = useState(false);
   const [showMonitor, setShowMonitor] = useState(false);
+  const [showAI, setShowAI] = useState(false);
+
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [isHandRaised, setIsHandRaised] = useState(false);
@@ -561,6 +565,17 @@ export const MeetingRoom: React.FC = () => {
             onMuteUser={handleMuteUser}
           />
         )}
+
+        <AnimatePresence>
+          {showAI && (
+            <AIAssistant
+              roomId={roomId || ''}
+              messages={messages}
+              onClose={() => setShowAI(false)}
+            />
+          )}
+        </AnimatePresence>
+
       </main>
 
       {/* Auto-hiding bottom toolbar */}
@@ -587,17 +602,20 @@ export const MeetingRoom: React.FC = () => {
               onToggleCamera={handleToggleCamera}
               onToggleScreenShare={handleToggleScreenShare}
               onToggleHand={handleToggleHand}
-              onToggleParticipants={() => { setShowParticipants(!showParticipants); setShowChat(false); setActiveSidebarTab('participants'); }}
-              onToggleChat={() => { setShowChat(!showChat); setShowParticipants(false); setActiveSidebarTab('chat'); }}
+              onToggleParticipants={() => { setShowParticipants(!showParticipants); setShowChat(false); setShowAI(false); setActiveSidebarTab('participants'); }}
+              onToggleChat={() => { setShowChat(!showChat); setShowParticipants(false); setShowAI(false); setActiveSidebarTab('chat'); }}
+              onToggleAI={() => { setShowAI(!showAI); setShowChat(false); setShowParticipants(false); }}
               onToggleSettings={() => setShowSettings(true)}
               onToggleMonitor={() => setShowMonitor(true)}
               isMonitoring={monitoring.isMonitoring}
+              showAI={showAI}
               isRecording={recording.isRecording}
               recordingDuration={recording.recordingDuration}
               onToggleRecording={handleToggleRecording}
               onLeave={handleLeave}
               onEndMeeting={handleEndMeeting}
             />
+
           </motion.div>
         )}
       </AnimatePresence>

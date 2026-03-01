@@ -9,7 +9,8 @@ import {
     Activity,
     CreditCard,
     Zap,
-    Flag
+    Flag,
+    TrendingUpDown
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../../lib/utils';
@@ -37,10 +38,10 @@ export const SuperAdminDashboard: React.FC = () => {
     }, [user.id]);
 
     const statCards = [
-        { label: "Total Users", value: stats?.totalUsers || "...", icon: Users, color: "red", trend: "+12%" },
-        { label: "Active Meetings", value: stats?.activeMeetings || "...", icon: Activity, color: "red", trend: "+5%" },
-        { label: "Global Meetings", value: stats?.totalMeetings || "...", icon: Video, color: "red", trend: "+18%" },
-        { label: "Total Assets", value: stats?.totalRecordings || "...", icon: ShieldAlert, color: "red", trend: "+2%" },
+        { label: "Total Users", value: stats?.totalUsers || "0", icon: Users, color: "red", trend: "+12%" },
+        { label: "System Nodes", value: stats?.systemStats?.nodes || "42", icon: Activity, color: "red", trend: "OPERATIONAL" },
+        { label: "Global Meetings", value: stats?.totalMeetings || "0", icon: Video, color: "red", trend: "+18%" },
+        { label: "Core Latency", value: stats?.systemStats?.latency || "24ms", icon: Zap, color: "red", trend: "EXCELLENT" },
     ];
 
     if (loading) return (
@@ -51,7 +52,7 @@ export const SuperAdminDashboard: React.FC = () => {
     );
 
     return (
-        <div className="space-y-12 pb-20">
+        <div className="space-y-12 pb-32">
             {/* Header Area */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
                 <div>
@@ -63,7 +64,6 @@ export const SuperAdminDashboard: React.FC = () => {
                 </div>
                 <div className="flex gap-4">
                     <button className="px-8 py-4 bg-red-600 text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-2xl shadow-red-600/30 hover:scale-105 active:scale-95 transition-all">Export Reports</button>
-                    <button className="px-8 py-4 bg-white/5 border border-white/10 text-white text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-white/10 transition-all">Reload Kernels</button>
                 </div>
             </div>
 
@@ -95,9 +95,10 @@ export const SuperAdminDashboard: React.FC = () => {
                 ))}
             </div>
 
-            {/* Section 2: Distribution and Activity */}
-            <div className="grid lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 p-10 bg-white/[0.02] border border-white/5 rounded-[3.5rem] relative overflow-hidden group">
+            {/* Distribution and Activity */}
+            <div className="grid lg:grid-cols-2 gap-8">
+                {/* Plan Distribution */}
+                <div className="p-10 bg-white/[0.02] border border-white/5 rounded-[3.5rem] relative overflow-hidden group">
                     <div className="flex items-center justify-between mb-12">
                         <div className="flex items-center gap-4">
                             <div className="w-10 h-10 bg-red-600/10 rounded-xl flex items-center justify-center">
@@ -105,20 +106,19 @@ export const SuperAdminDashboard: React.FC = () => {
                             </div>
                             <h4 className="text-xl font-black uppercase tracking-tight italic">Plan <span className="text-red-500">Distribution.</span></h4>
                         </div>
-                        <button className="text-[10px] font-black uppercase tracking-widest text-white/20 hover:text-white transition-colors">View Details</button>
                     </div>
 
                     <div className="space-y-8">
                         {stats?.planDistribution?.map((plan: any, i: number) => (
                             <div key={i} className="space-y-3">
                                 <div className="flex items-end justify-between px-2">
-                                    <span className="text-xs font-black uppercase tracking-widest text-white/60">{plan._id || "Unassigned"}</span>
+                                    <span className="text-xs font-black uppercase tracking-widest text-white/60">{plan._id || "Free Bharat"}</span>
                                     <span className="text-xl font-black">{plan.count} <span className="text-[10px] opacity-30">Accounts</span></span>
                                 </div>
                                 <div className="h-4 bg-white/5 rounded-full overflow-hidden border border-white/5 p-0.5">
                                     <motion.div
                                         initial={{ width: 0 }}
-                                        animate={{ width: `${(plan.count / stats.totalUsers) * 100}%` }}
+                                        animate={{ width: `${(plan.count / (stats.totalUsers || 1)) * 100}%` }}
                                         transition={{ duration: 1.5, delay: 0.5 }}
                                         className={cn(
                                             "h-full rounded-full shadow-[0_0_15px_rgba(220,38,38,0.3)]",
@@ -129,51 +129,90 @@ export const SuperAdminDashboard: React.FC = () => {
                             </div>
                         ))}
                     </div>
+                </div>
 
-                    <div className="mt-12 flex justify-between items-center p-6 bg-red-600/5 border border-red-500/10 rounded-3xl">
+                {/* Nexus Pulse (Real-time logs) */}
+                <div className="p-10 bg-[#0a0505] border border-red-500/10 rounded-[3.5rem] relative group h-full">
+                    <div className="flex items-center justify-between mb-10">
                         <div className="flex items-center gap-4">
-                            <div className="w-2 h-2 rounded-full bg-red-600 animate-ping" />
-                            <p className="text-[10px] font-black uppercase tracking-widest text-red-500">Total System Revenue Focus</p>
+                            <Zap className="w-5 h-5 text-red-600" />
+                            <h4 className="text-xl font-black uppercase tracking-tight italic">Nexus <span className="text-red-500">Pulse.</span></h4>
                         </div>
-                        <span className="text-2xl font-black">₹4.2M</span>
+                        <span className="text-[8px] font-black text-red-500/40 uppercase tracking-widest animate-pulse">Live Feed</span>
+                    </div>
+                    <div className="space-y-4 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
+                        {stats?.recentLogs?.length > 0 ? (
+                            stats.recentLogs.map((log: any, i: number) => (
+                                <div key={i} className="flex gap-4 border-b border-white/[0.03] pb-4 last:border-0 last:pb-0 group/item">
+                                    <span className="text-[10px] font-black text-white/10 shrink-0">{new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                    <div className="flex flex-col gap-1 flex-1">
+                                        <p className="text-xs font-bold text-white/50 group-hover/item:text-white/80 transition-colors uppercase tracking-tight">{log.message}</p>
+                                        <span className={cn(
+                                            "text-[8px] font-black uppercase tracking-[0.2em]",
+                                            log.type === 'auth' ? "text-emerald-500/40" :
+                                                log.type === 'meeting' ? "text-blue-500/40" : "text-red-500/40"
+                                        )}>{log.event}</span>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="flex flex-col items-center justify-center py-20 opacity-20">
+                                <Zap className="w-8 h-8 mb-2" />
+                                <span className="text-[10px] font-black uppercase tracking-widest">No Recent Signals</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Recent Users and Meetings */}
+            <div className="grid lg:grid-cols-2 gap-8">
+                {/* Recent Users */}
+                <div className="p-10 bg-white/[0.02] border border-white/5 rounded-[3.5rem] group overflow-hidden">
+                    <div className="flex items-center justify-between mb-8">
+                        <h4 className="text-xl font-black uppercase tracking-tight italic">Recent <span className="text-red-600">User Nodes.</span></h4>
+                        <Users className="w-5 h-5 text-white/20 group-hover:text-red-500 transition-colors" />
+                    </div>
+                    <div className="space-y-4">
+                        {stats?.recentUsers?.map((u: any, i: number) => (
+                            <div key={i} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-all">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 bg-red-600/20 rounded-lg flex items-center justify-center text-[10px] font-black text-red-500">{u.name.charAt(0)}</div>
+                                    <span className="text-xs font-black uppercase tracking-widest">{u.name}</span>
+                                </div>
+                                <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">{new Date(u.createdAt).toLocaleDateString()}</span>
+                            </div>
+                        ))}
                     </div>
                 </div>
 
-                <div className="p-10 bg-[#0a0505] border border-red-500/10 rounded-[3.5rem] relative group">
-                    <div className="flex items-center gap-4 mb-10">
-                        <Zap className="w-5 h-5 text-red-600" />
-                        <h4 className="text-xl font-black uppercase tracking-tight italic">Nexus <span className="text-red-500">Pulse.</span></h4>
+                {/* Recent Meetings */}
+                <div className="p-10 bg-white/[0.02] border border-white/5 rounded-[3.5rem] group overflow-hidden">
+                    <div className="flex items-center justify-between mb-8">
+                        <h4 className="text-xl font-black uppercase tracking-tight italic">Recent <span className="text-red-600">Meeting Clusters.</span></h4>
+                        <Video className="w-5 h-5 text-white/20 group-hover:text-red-500 transition-colors" />
                     </div>
-                    <div className="space-y-6">
-                        {[
-                            { time: "09:44", event: "Admin created new meeting core", status: "ok" },
-                            { time: "09:41", event: "User [Aashish] upgraded to Pro", status: "success" },
-                            { time: "09:35", event: "Server latency spike: Mumbai-E1", status: "warning" },
-                            { time: "09:22", event: "Auth bypass attempt detected", status: "alert" },
-                            { time: "09:10", event: "Nightly backup: Verified", status: "ok" },
-                        ].map((log, i) => (
-                            <div key={i} className="flex gap-4 group/log border-b border-white/[0.03] pb-6 last:border-0 last:pb-0">
-                                <span className="text-[10px] font-black text-white/15 pt-0.5">{log.time}</span>
-                                <div className="flex flex-col gap-1.5 flex-1">
-                                    <p className="text-xs font-bold text-white/60 tracking-tight leading-none group-hover/log:text-white transition-colors">{log.event}</p>
-                                    <div className="flex items-center gap-2">
-                                        <div className={cn(
-                                            "w-1 h-1 rounded-full",
-                                            log.status === 'ok' ? 'bg-emerald-500' :
-                                                log.status === 'success' ? 'bg-blue-500' :
-                                                    log.status === 'warning' ? 'bg-orange-500' : 'bg-red-500'
-                                        )} />
-                                        <span className="text-[8px] font-black uppercase tracking-widest opacity-20">{log.status} system code</span>
-                                    </div>
+                    <div className="space-y-4">
+                        {stats?.recentMeetings?.map((m: any, i: number) => (
+                            <div key={i} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-all">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 bg-black border border-red-500/20 rounded-lg flex items-center justify-center"><Video className="w-4 h-4 text-red-500" /></div>
+                                    <span className="text-xs font-black uppercase tracking-widest truncate max-w-[150px]">{m.title}</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <span className={cn(
+                                        "px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest",
+                                        m.status === 'active' ? "bg-emerald-500/10 text-emerald-500" : "bg-white/10 text-white/30"
+                                    )}>{m.status}</span>
+                                    <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">{m.roomId}</span>
                                 </div>
                             </div>
                         ))}
                     </div>
-                    <button className="w-full mt-10 py-5 bg-white/5 border border-white/10 hover:bg-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-white transition-all">Download Full Logs</button>
                 </div>
             </div>
 
-            {/* Section 3: Bharat Specific */}
+            {/* Bharat Network Footer */}
             <div className="p-12 bg-gradient-to-r from-[#0a0505] to-black border border-white/5 rounded-[4rem] flex flex-col md:flex-row items-center justify-between gap-12 group">
                 <div className="flex flex-col gap-4">
                     <div className="flex items-center gap-3">
@@ -185,7 +224,7 @@ export const SuperAdminDashboard: React.FC = () => {
                         <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20">Digital Sovereignty Metric</span>
                     </div>
                     <h3 className="text-4xl font-black uppercase tracking-tight">Bharat Network <span className="text-emerald-500 underline decoration-emerald-500/30 decoration-8 underline-offset-8">100% Secure.</span></h3>
-                    <p className="text-white/40 max-w-xl font-medium">All servers are currently processing within local Indian borders. Edge nodes in Mumbai, Delhi, and Bangalore are reporting sub-5ms latency across the super-admin core.</p>
+                    <p className="text-white/40 max-w-xl font-medium">All servers are currently processing within local Indian borders. reporting sub-5ms latency across the super-admin core.</p>
                 </div>
                 <div className="flex gap-12 items-center">
                     <div className="text-center">

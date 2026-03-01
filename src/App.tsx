@@ -14,6 +14,9 @@ import { SuperAdminLayout } from './components/SuperAdmin/SuperAdminLayout';
 import { SuperAdminDashboard } from './components/SuperAdmin/SuperAdminDashboard';
 import { SuperAdminUsers } from './components/SuperAdmin/SuperAdminUsers';
 import { SuperAdminPlans } from './components/SuperAdmin/SuperAdminPlans';
+import { SuperAdminAnalytics } from './components/SuperAdmin/SuperAdminAnalytics';
+import { SuperAdminLogs } from './components/SuperAdmin/SuperAdminLogs';
+import { SuperAdminConfig } from './components/SuperAdmin/SuperAdminConfig';
 
 export default function App() {
   return (
@@ -39,10 +42,13 @@ export default function App() {
           <Route path="/nexus-super-portal" element={<SuperAdminLayout><SuperAdminDashboard /></SuperAdminLayout>} />
           <Route path="/nexus-super-portal/users" element={<SuperAdminLayout><SuperAdminUsers /></SuperAdminLayout>} />
           <Route path="/nexus-super-portal/plans" element={<SuperAdminLayout><SuperAdminPlans /></SuperAdminLayout>} />
+          <Route path="/nexus-super-portal/analytics" element={<SuperAdminLayout><SuperAdminAnalytics /></SuperAdminLayout>} />
+          <Route path="/nexus-super-portal/logs" element={<SuperAdminLayout><SuperAdminLogs /></SuperAdminLayout>} />
+          <Route path="/nexus-super-portal/config" element={<SuperAdminLayout><SuperAdminConfig /></SuperAdminLayout>} />
 
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>
-    </BrowserRouter>
+    </BrowserRouter >
   );
 }

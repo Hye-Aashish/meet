@@ -250,9 +250,13 @@ export function useRecording() {
                 setRecordings(prev => [rec, ...prev]);
 
                 // Save metadata to server
+                const userId = localStorage.getItem('nexus_user_id');
                 fetch('/api/recordings', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-user-id': userId || ''
+                    },
                     body: JSON.stringify({
                         title: rec.title,
                         roomId: rec.roomId,

@@ -7,6 +7,7 @@ import {
     Calendar,
     Settings,
     Shield,
+    ShieldAlert,
     ChevronLeft,
     ChevronRight,
     LogOut,
@@ -37,12 +38,23 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     const [mobileOpen, setMobileOpen] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
-    const userName = localStorage.getItem('nexus_user_name') || 'Admin';
+    const userStr = localStorage.getItem('nexus_user');
+    const user = userStr ? JSON.parse(userStr) : null;
+    const userName = user?.name || 'Admin';
+
+    // Auth Guard
+    useEffect(() => {
+        if (!user) {
+            navigate('/login');
+        }
+    }, [user, navigate]);
 
     // Close mobile menu on navigation
     useEffect(() => {
         setMobileOpen(false);
     }, [location.pathname]);
+
+    if (!user) return null;
 
     const SidebarContent = () => (
         <div className="h-full border-r border-white/5 bg-brand-card/50 backdrop-blur-xl flex flex-col overflow-hidden shrink-0">
@@ -129,13 +141,22 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                     {!collapsed && <span>Collapse</span>}
                 </button>
 
+                {/* Super Admin Access (Hidden for normal users) */}
+                {user?.role === 'admin' && (
+                    <button
+                        onClick={() => navigate('/nexus-super-portal')}
+                        className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-xl bg-red-600/10 text-red-500 hover:bg-red-600/20 transition-all text-[10px] font-black uppercase tracking-widest border border-red-500/20"
+                    >
+                        <ShieldAlert className="w-4 h-4" />
+                        {(!collapsed || mobileOpen) && <span>Super Portal Core</span>}
+                    </button>
+                )}
+
                 {/* Logout */}
                 <button
                     onClick={() => {
-                        localStorage.removeItem('nexus_user');
-                        localStorage.removeItem('nexus_user_name');
-                        localStorage.removeItem('nexus_user_id');
-                        navigate('/login');
+                        localStorage.clear();
+                        window.location.href = '/login';
                     }}
                     className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-red-500/60 hover:text-red-500 hover:bg-red-500/10 transition-colors text-xs font-bold"
                 >

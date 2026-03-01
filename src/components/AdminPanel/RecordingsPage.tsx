@@ -47,7 +47,11 @@ export const RecordingsPage: React.FC = () => {
 
     const handleDelete = async (id: string) => {
         try {
-            const res = await fetch(`/api/recordings/${id}`, { method: 'DELETE' });
+            const userId = localStorage.getItem('nexus_user_id');
+            const res = await fetch(`/api/recordings/${id}`, {
+                method: 'DELETE',
+                headers: { 'x-user-id': userId || '' }
+            });
             if (res.ok) {
                 setDeleteConfirm(null);
                 fetchRecordings();

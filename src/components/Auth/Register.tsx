@@ -11,6 +11,11 @@ export const Register: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
+    // Clear session to prevent leakage
+    React.useEffect(() => {
+        localStorage.clear();
+    }, []);
+
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);

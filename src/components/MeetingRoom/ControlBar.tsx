@@ -1,5 +1,6 @@
 import React from 'react';
-import { Mic, MicOff, Video, VideoOff, MonitorUp, MonitorOff, Hand, Users, MessageSquare, Settings, PhoneOff, Share2, Circle, Eye } from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, MonitorUp, MonitorOff, Hand, Users, MessageSquare, Settings, PhoneOff, Share2, Circle, Eye, Bot } from 'lucide-react';
+
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -20,7 +21,10 @@ interface ControlBarProps {
   onToggleHand: () => void;
   onToggleParticipants: () => void;
   onToggleChat: () => void;
+  onToggleAI?: () => void;
+  showAI?: boolean;
   isRecording?: boolean;
+
   recordingDuration?: number;
   onToggleRecording: () => void;
   onToggleSettings: () => void;
@@ -69,7 +73,10 @@ export const ControlBar: React.FC<ControlBarProps> = ({
   onToggleHand,
   onToggleParticipants,
   onToggleChat,
+  onToggleAI,
+  showAI,
   onToggleSettings,
+
   onToggleMonitor,
   isMonitoring,
   isRecording,
@@ -256,6 +263,22 @@ export const ControlBar: React.FC<ControlBarProps> = ({
             <MessageSquare className="w-5 h-5" />
           </motion.button>
         </ControlTooltip>
+
+        <ControlTooltip text="Nexus AI">
+          <motion.button
+            id="toggle-ai"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onToggleAI}
+            className={cn(
+              "w-12 h-12 rounded-2xl flex items-center justify-center transition-all",
+              showAI ? "bg-red-600 text-white shadow-[0_0_20px_rgba(220,38,38,0.4)]" : "bg-brand-accent hover:bg-brand-accent/80 text-white border border-white/5"
+            )}
+          >
+            <Bot className="w-5 h-5" />
+          </motion.button>
+        </ControlTooltip>
+
 
         {/* Settings - Host only */}
         {isHost && (
