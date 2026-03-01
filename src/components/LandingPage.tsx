@@ -21,7 +21,14 @@ import {
     Flag,
     Cpu,
     Server,
-    CloudLightning
+    CloudLightning,
+    Sparkles,
+    MessageSquare,
+    BarChart,
+    HardDrive,
+    Infinity,
+    Headphones,
+    Award
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
@@ -57,15 +64,20 @@ export const LandingPage: React.FC = () => {
         }
     ];
 
-    const stats = [
-        { value: "1M+", label: "Minutes Monthly" },
-        { value: "50k+", label: "Proudly Indian" },
-        { value: "99.9%", label: "Uptime" },
-        { value: "ISO", label: "Certified" }
+    const steps = [
+        { id: "01", title: "Create Portal", desc: "Launch your personal branded meeting studio in seconds." },
+        { id: "02", title: "Invite Teams", desc: "Send one-click invites via WhatsApp, Email or SMS." },
+        { id: "03", title: "Secure Chat", desc: "Collaborate with E2EE encryption and AI-powered tools." }
+    ];
+
+    const pricing = [
+        { name: "Free Bharat", price: "₹0", features: ["Up to 40 mins", "100 Participants", "HD Video", "Base Tracking"], cta: "Get Started", color: "white" },
+        { name: "Nexus Pro", price: "₹999", features: ["Unlimited Time", "500 Participants", "4K Video", "Full Silent Tracking", "AI Summaries"], cta: "Go Pro", color: "blue", popular: true },
+        { name: "Enterprise", price: "Custom", features: ["Unlimited Users", "Private Edge Servers", "Audit Logs", "Dedicated Support", "Custom Branding"], cta: "Contact Sales", color: "orange" }
     ];
 
     return (
-        <div className="min-h-screen bg-[#060610] text-white selection:bg-orange-500/30 selection:text-white font-sans overflow-x-hidden">
+        <div className="min-h-screen bg-[#06060c] text-white selection:bg-orange-500/30 selection:text-white font-sans overflow-x-hidden">
             {/* Top Banner - Made in India */}
             <div className="bg-gradient-to-r from-orange-600/20 via-white/5 to-emerald-600/20 py-2 border-b border-white/5 text-center relative z-[110]">
                 <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-white/60 flex items-center justify-center gap-2">
@@ -77,9 +89,12 @@ export const LandingPage: React.FC = () => {
 
             {/* Navigation */}
             <nav className="fixed top-8 left-1/2 -translate-x-1/2 z-[100] w-[95%] max-w-7xl">
-                <div className="backdrop-blur-2xl border border-white/10 bg-black/40 rounded-3xl px-6 h-20 flex items-center justify-between shadow-2xl shadow-black/50">
-                    <div className="flex items-center gap-3 group cursor-pointer" onClick={() => navigate('/')}>
-                        <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20 group-hover:rotate-6 transition-all duration-300">
+                <div className="backdrop-blur-3xl border border-white/10 bg-black/40 rounded-3xl px-6 h-20 flex items-center justify-between shadow-2xl shadow-black/50 overflow-hidden relative group">
+                    {/* Animated Glow Line on Nav */}
+                    <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
+
+                    <div className="flex items-center gap-3 group/logo cursor-pointer" onClick={() => navigate('/')}>
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20 group-hover/logo:rotate-6 transition-all duration-300">
                             <Shield className="w-6 h-6 text-white" />
                         </div>
                         <div className="flex flex-col">
@@ -89,9 +104,10 @@ export const LandingPage: React.FC = () => {
                     </div>
 
                     <div className="hidden md:flex items-center gap-10">
-                        <a href="#features" className="text-xs font-black text-white/40 hover:text-white uppercase tracking-widest transition-colors">Features</a>
-                        <a href="#tracking" className="text-xs font-black text-white/40 hover:text-white uppercase tracking-widest transition-colors">Tracking</a>
-                        <a href="#india" className="text-xs font-black text-white/40 hover:text-white uppercase tracking-widest transition-colors">Sovereignty</a>
+                        <a href="#features" className="text-[10px] font-black text-white/40 hover:text-white uppercase tracking-widest transition-colors">Features</a>
+                        <a href="#ai" className="text-[10px] font-black text-white/40 hover:text-white uppercase tracking-widest transition-colors">AI Power</a>
+                        <a href="#tracking" className="text-[10px] font-black text-white/40 hover:text-white uppercase tracking-widest transition-colors">Tracking</a>
+                        <a href="#pricing" className="text-[10px] font-black text-white/40 hover:text-white uppercase tracking-widest transition-colors">Pricing</a>
                         {user ? (
                             <motion.button
                                 whileHover={{ scale: 1.02, y: -2 }}
@@ -103,7 +119,7 @@ export const LandingPage: React.FC = () => {
                             </motion.button>
                         ) : (
                             <div className="flex items-center gap-4">
-                                <Link to="/login" className="text-xs font-black text-white/40 hover:text-white uppercase tracking-widest transition-colors px-4">Login</Link>
+                                <Link to="/login" className="text-[10px] font-black text-white/40 hover:text-white uppercase tracking-widest transition-colors px-4">Login</Link>
                                 <motion.button
                                     whileHover={{ scale: 1.05, y: -2 }}
                                     whileTap={{ scale: 0.95 }}
@@ -123,7 +139,6 @@ export const LandingPage: React.FC = () => {
                 </div>
             </nav>
 
-            {/* Mobile Menu */}
             <AnimatePresence>
                 {isMenuOpen && (
                     <motion.div
@@ -137,8 +152,9 @@ export const LandingPage: React.FC = () => {
                         </button>
                         <div className="flex flex-col gap-6 w-full">
                             <a href="#features" onClick={() => setIsMenuOpen(false)} className="text-4xl font-black tracking-tighter">FEATURES</a>
+                            <a href="#ai" onClick={() => setIsMenuOpen(false)} className="text-4xl font-black tracking-tighter">AI AGENT</a>
                             <a href="#tracking" onClick={() => setIsMenuOpen(false)} className="text-4xl font-black tracking-tighter">TRACKING</a>
-                            <a href="#india" onClick={() => setIsMenuOpen(false)} className="text-4xl font-black tracking-tighter">BHARAT FIRST</a>
+                            <a href="#pricing" onClick={() => setIsMenuOpen(false)} className="text-4xl font-black tracking-tighter">PRICING</a>
                             <hr className="border-white/10 w-24 mx-auto" />
                             {user ? (
                                 <button onClick={() => navigate('/admin')} className="w-full py-6 bg-blue-600 rounded-[2rem] text-xl font-black">DASHBOARD</button>
@@ -156,9 +172,8 @@ export const LandingPage: React.FC = () => {
             <main>
                 {/* Hero Section */}
                 <section className="relative pt-64 pb-32 overflow-hidden">
-                    {/* Saffron and Green Glows */}
-                    <div className="absolute top-0 -left-1/4 w-[60%] h-[1000px] bg-orange-600/10 blur-[150px] rounded-full -rotate-12 animate-pulse" />
-                    <div className="absolute -bottom-1/2 -right-1/4 w-[60%] h-[1000px] bg-emerald-600/10 blur-[150px] rounded-full rotate-12" />
+                    <div className="absolute top-0 -left-1/4 w-[60%] h-[1000px] bg-orange-600/10 blur-[180px] rounded-full -rotate-12 animate-pulse" />
+                    <div className="absolute -bottom-1/2 -right-1/4 w-[60%] h-[1000px] bg-emerald-600/15 blur-[180px] rounded-full rotate-12" />
 
                     <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
                         <motion.div
@@ -171,7 +186,7 @@ export const LandingPage: React.FC = () => {
                                 <div className="w-3 h-3 rounded-full bg-white z-10 border border-black/10 shadow-sm" />
                                 <div className="w-3 h-3 rounded-full bg-emerald-500 -ml-1" />
                             </div>
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60">Built in India. For the World.</span>
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60">Bharat's Digital Sovereignty v3.0</span>
                         </motion.div>
 
                         <motion.h1
@@ -180,8 +195,8 @@ export const LandingPage: React.FC = () => {
                             transition={{ delay: 0.1, duration: 0.8 }}
                             className="text-6xl md:text-[10rem] font-black mb-8 tracking-tighter leading-[0.8] mix-blend-lighten"
                         >
-                            BHARAT'S <br />
-                            <span className="bg-gradient-to-r from-orange-500 via-white to-emerald-500 bg-clip-text text-transparent">SECUREST PORTAL.</span>
+                            NATIVE <br />
+                            <span className="bg-gradient-to-r from-orange-400 via-white to-emerald-400 bg-clip-text text-transparent">EXCELLENCE.</span>
                         </motion.h1>
 
                         <motion.p
@@ -190,8 +205,8 @@ export const LandingPage: React.FC = () => {
                             transition={{ delay: 0.2 }}
                             className="max-w-3xl mx-auto text-white/40 text-xl font-medium mb-16 leading-relaxed"
                         >
-                            Nexus is the next-gen communication bridge designed for Indian enterprises.
-                            Native performance, low-latency tracking, and absolute data sovereignty.
+                            The most advanced communication stack engineered for Indian enterprises.
+                            Absolute privacy, localized edge speed, and world-class AI integrations.
                         </motion.p>
 
                         <motion.div
@@ -218,92 +233,58 @@ export const LandingPage: React.FC = () => {
                             </motion.button>
                         </motion.div>
                     </div>
+                </section>
 
-                    {/* Device Mockup */}
-                    <div className="max-w-6xl mx-auto px-6 mt-32 relative">
-                        <motion.div
-                            initial={{ opacity: 0, y: 100, scale: 0.9 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            transition={{ delay: 0.5, duration: 1, type: 'spring' }}
-                            className="relative aspect-video bg-gradient-to-br from-white/10 to-transparent rounded-[3rem] border border-white/20 p-3 shadow-[0_0_100px_-20px_rgba(59,130,246,0.2)] overflow-hidden group"
-                        >
-                            <div className="w-full h-full bg-[#030308] rounded-[2.5rem] overflow-hidden relative">
-                                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
-
-                                {/* Simulated Meeting Interface */}
-                                <div className="absolute inset-0 p-12 flex flex-col">
-                                    <div className="flex items-center justify-between mb-12 opacity-30">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 rounded-2xl bg-orange-500/20 border border-orange-500/30" />
-                                            <div className="w-48 h-5 bg-white/10 rounded-full" />
-                                        </div>
-                                        <div className="flex gap-3">
-                                            <div className="w-24 h-10 bg-emerald-500/10 border border-emerald-500/20 rounded-full" />
-                                            <div className="w-10 h-10 bg-white/5 rounded-2xl" />
-                                        </div>
-                                    </div>
-
-                                    <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-6">
-                                        {[1, 2, 3].map(i => (
-                                            <div key={i} className="bg-white/[0.02] rounded-[2rem] border border-white/5 relative group-hover:bg-white/[0.04] transition-all overflow-hidden">
-                                                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent" />
-                                                <div className="absolute bottom-5 left-5 flex items-center gap-3">
-                                                    <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
-                                                    <div className="w-24 h-3 bg-white/10 rounded-full" />
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    <div className="mt-12 flex justify-center gap-6 opacity-30">
-                                        <div className="w-16 h-16 bg-white/5 border border-white/10 rounded-2xl" />
-                                        <div className="w-16 h-16 bg-white/5 border border-white/10 rounded-2xl" />
-                                        <div className="w-16 h-16 bg-red-500/20 border border-red-500/20 rounded-2xl" />
-                                        <div className="w-16 h-16 bg-white/5 border border-white/10 rounded-2xl" />
-                                    </div>
-                                </div>
-
-                                {/* Floating Glows inside mockup */}
-                                <div className="absolute -top-40 -right-40 w-96 h-96 bg-orange-500/10 blur-[120px]" />
-                                <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-emerald-500/10 blur-[120px]" />
-                            </div>
-                        </motion.div>
+                {/* Brand Logos / Trusted By Scroll */}
+                <section className="py-20 border-y border-white/5 bg-black overflow-hidden group">
+                    <div className="max-w-7xl mx-auto px-6 mb-12 flex items-center justify-center gap-4">
+                        <div className="h-[1px] w-12 bg-white/10" />
+                        <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em]">Engineered for Bharat Leaders</span>
+                        <div className="h-[1px] w-12 bg-white/10" />
+                    </div>
+                    <div className="flex gap-20 items-center justify-center opacity-30 grayscale saturate-0 group-hover:grayscale-0 group-hover:opacity-100 group-hover:saturate-100 transition-all duration-700">
+                        <div className="flex items-center gap-3"><Flag className="w-8 h-8" /><span className="text-xl font-black">Digital India</span></div>
+                        <div className="flex items-center gap-3"><Shield className="w-8 h-8" /><span className="text-xl font-black">Secure In</span></div>
+                        <div className="flex items-center gap-3"><Zap className="w-8 h-8" /><span className="text-xl font-black">Fast Bharat</span></div>
+                        <div className="flex items-center gap-3"><Globe className="w-8 h-8" /><span className="text-xl font-black">Native Hub</span></div>
                     </div>
                 </section>
 
-                {/* Stats Section */}
-                <section className="py-24 border-y border-white/5 bg-white/[0.02] backdrop-blur-3xl relative">
+                {/* Step by Step Section */}
+                <section className="py-32 relative">
                     <div className="max-w-7xl mx-auto px-6">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-12">
-                            {stats.map((stat, i) => (
-                                <div key={i} className="text-center group">
-                                    <h3 className="text-5xl md:text-7xl font-black mb-3 bg-gradient-to-b from-white to-white/40 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-500">{stat.value}</h3>
-                                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">{stat.label}</p>
+                        <div className="grid md:grid-cols-3 gap-8">
+                            {steps.map((step, i) => (
+                                <div key={i} className="relative p-10 rounded-[3rem] bg-white/[0.02] border border-white/5 group hover:bg-white/[0.04] transition-all">
+                                    <span className="text-8xl font-black absolute top-5 right-5 opacity-5 group-hover:opacity-10 transition-opacity text-blue-500">{step.id}</span>
+                                    <h4 className="text-2xl font-black mb-4 relative z-10">{step.title}</h4>
+                                    <p className="text-white/40 leading-relaxed font-medium">{step.desc}</p>
                                 </div>
                             ))}
                         </div>
                     </div>
                 </section>
 
-                {/* India Section */}
-                <section id="india" className="py-32 relative group">
+                {/* AI Integration Section */}
+                <section id="ai" className="py-32 relative group">
                     <div className="max-w-7xl mx-auto px-6 flex flex-col items-center">
-                        <div className="w-20 h-20 bg-emerald-500/10 rounded-[2rem] flex items-center justify-center mb-10 border border-emerald-500/20 relative">
-                            <CloudLightning className="w-10 h-10 text-emerald-400" />
-                            <div className="absolute inset-0 bg-emerald-500/20 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="w-24 h-24 bg-blue-500/10 rounded-[2.5rem] flex items-center justify-center mb-12 border border-blue-500/20 relative">
+                            <Sparkles className="w-12 h-12 text-blue-400 animate-pulse" />
+                            <div className="absolute inset-0 bg-blue-500/20 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
                         </div>
-                        <h2 className="text-5xl md:text-8xl font-black mb-8 text-center tracking-tighter leading-none">BHARAT AT <br /><span className="text-emerald-500">THE CORE.</span></h2>
-                        <p className="text-white/40 text-xl font-medium max-w-2xl text-center mb-16 italic">
-                            "Our vision is to provide every Indian business with a communication tool that respects our boundaries, our culture, and our security."
+                        <h2 className="text-5xl md:text-8xl font-black mb-8 text-center tracking-tighter leading-none">AI POWERED <br /><span className="text-blue-500">INSIGHTS.</span></h2>
+                        <p className="text-white/40 text-xl font-medium max-w-2xl text-center mb-20">
+                            Automated summaries, professional noise cancellation, and intelligent task tracking, all built on top-tier global AI engines.
                         </p>
-                        <div className="grid md:grid-cols-3 gap-8 w-full">
+
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
                             {[
-                                { icon: <Cpu />, title: "Local Infrastructure", desc: "Edge servers hosted in Mumbai, Delhi, and Bangalore for sub-10ms latency." },
-                                { icon: <Database />, title: "Data Sovereignty", desc: "We follow all Indian data protection regulations. Your data never leaves our borders." },
-                                { icon: <Lock />, title: "Vocal for Local", desc: "100% Indian engineering team focusing on high-end localized communication needs." }
+                                { icon: <MessageSquare />, title: "Live Summaries", desc: "Never take notes again. Get perfect automated meeting minutes in real-time." },
+                                { icon: <Award />, title: "Voice Isolation", desc: "Crystal clear audio optimized for noisy Indian environments and heavy traffic zones." },
+                                { icon: <CloudLightning />, title: "Auto Attendance", desc: "Intelligent facial and audio tracking for seamless logs without manual effort." }
                             ].map((item, i) => (
-                                <div key={i} className="p-10 rounded-[2.5rem] bg-white/[0.02] border border-white/5 hover:border-emerald-500/30 transition-all">
-                                    <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center mb-6 text-emerald-400">
+                                <div key={i} className="p-12 rounded-[2.5rem] bg-gradient-to-br from-white/[0.03] to-transparent border border-white/5 hover:border-blue-500/30 transition-all text-center">
+                                    <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-8 text-blue-400 mx-auto">
                                         {item.icon}
                                     </div>
                                     <h4 className="text-2xl font-black mb-4">{item.title}</h4>
@@ -320,21 +301,21 @@ export const LandingPage: React.FC = () => {
                         <div className="grid lg:grid-cols-2 gap-24 items-center">
                             <div>
                                 <div className="inline-block px-4 py-2 bg-orange-500/10 border border-orange-500/20 rounded-full mb-8">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-orange-400">Industry First</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-orange-400">Governance First</span>
                                 </div>
                                 <h2 className="text-5xl md:text-7xl font-black mb-8 tracking-tight leading-[0.9]">
-                                    SILENT SCREEN<br />
-                                    <span className="text-orange-500">MONITORING.</span>
+                                    ABSOLUTE <br />
+                                    <span className="text-orange-500">TRANSPARENCY.</span>
                                 </h2>
                                 <p className="text-white/40 text-lg mb-12 leading-relaxed font-medium">
-                                    Designed for the high-accountability Indian workspace. Manage your remote team with absolute transparency. Capture, track, and optimize performance in real-time.
+                                    The only Indian platform with native silent monitoring. Perfect for high-stake education, corporate compliance, and team coordination.
                                 </p>
                                 <div className="grid grid-cols-2 gap-6">
                                     {[
-                                        "3s Live Intervals",
-                                        "AES-256 Encryption",
-                                        "Zero-lag Capture",
-                                        "Native Optimization"
+                                        "3s Live Gaps",
+                                        "Local Encryption",
+                                        "Zero-lag Performance",
+                                        "Native Electron App"
                                     ].map((text, i) => (
                                         <div key={i} className="flex items-center gap-3">
                                             <div className="w-5 h-5 bg-orange-500/10 rounded-full flex items-center justify-center border border-orange-500/20">
@@ -371,10 +352,52 @@ export const LandingPage: React.FC = () => {
                                         </div>
                                     </div>
                                 </motion.div>
-                                {/* Decorative Elements */}
                                 <div className="absolute -top-32 -right-32 w-96 h-96 bg-orange-600/20 blur-[130px] rounded-full" />
                                 <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-blue-600/10 blur-[130px] rounded-full" />
                             </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Pricing Section */}
+                <section id="pricing" className="py-32 relative">
+                    <div className="max-w-7xl mx-auto px-6">
+                        <div className="text-center mb-24">
+                            <h2 className="text-5xl md:text-8xl font-black mb-6 tracking-tight leading-none">CHOOSE YOUR <br /><span className="text-indigo-500">PLAN.</span></h2>
+                            <p className="text-white/40 text-xl font-medium">Simple, local billing. No USD conversions, no hidden charges.</p>
+                        </div>
+                        <div className="grid md:grid-cols-3 gap-8">
+                            {pricing.map((plan, i) => (
+                                <div key={i} className={cn(
+                                    "p-12 rounded-[3.5rem] border transition-all flex flex-col",
+                                    plan.popular
+                                        ? "bg-gradient-to-b from-blue-600 to-indigo-700 border-white/20 shadow-2xl shadow-blue-600/20 scale-105"
+                                        : "bg-white/[0.02] border-white/5 hover:bg-white/[0.04]"
+                                )}>
+                                    {plan.popular && (
+                                        <div className="bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest mb-8 self-start">Most Popular</div>
+                                    )}
+                                    <h4 className="text-2xl font-black mb-2 uppercase tracking-tight">{plan.name}</h4>
+                                    <div className="flex items-end gap-2 mb-10">
+                                        <span className="text-5xl font-black">{plan.price}</span>
+                                        <span className="text-sm font-bold opacity-40 mb-2">/ month</span>
+                                    </div>
+                                    <div className="space-y-4 mb-12 flex-1">
+                                        {plan.features.map((f, j) => (
+                                            <div key={j} className="flex items-center gap-3">
+                                                <CheckCircle2 className={cn("w-5 h-5", plan.popular ? "text-white" : "text-blue-500")} />
+                                                <span className="text-sm font-bold opacity-60 tracking-tight">{f}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <button className={cn(
+                                        "w-full py-6 rounded-[2rem] text-sm font-black transition-all",
+                                        plan.popular ? "bg-white text-black hover:scale-105" : "bg-white/5 hover:bg-white/10 border border-white/10"
+                                    )}>
+                                        {plan.cta}
+                                    </button>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </section>
@@ -389,11 +412,11 @@ export const LandingPage: React.FC = () => {
                         >
                             <div className="absolute inset-0 bg-blue-500/20 blur-[60px] rounded-full group-hover:bg-blue-500/40 transition-all duration-700" />
                             <div className="relative w-32 h-32 bg-white/5 backdrop-blur-3xl rounded-[2.5rem] flex items-center justify-center border border-white/10 group-hover:scale-110 group-hover:rotate-12 transition-all duration-500">
-                                <UserPlus className="w-12 h-12 text-blue-400" />
+                                <Smartphone className="w-12 h-12 text-blue-400" />
                             </div>
                         </motion.div>
                         <h2 className="text-5xl md:text-9xl font-black mb-12 tracking-tighter leading-none uppercase italic">
-                            Empower <span className="bg-gradient-to-r from-orange-400 to-emerald-400 bg-clip-text text-transparent">Your Bharat.</span>
+                            Future of <span className="bg-gradient-to-r from-orange-400 to-emerald-400 bg-clip-text text-transparent">Digital Bharat.</span>
                         </h2>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
                             <motion.button
@@ -402,15 +425,15 @@ export const LandingPage: React.FC = () => {
                                 onClick={() => navigate('/register')}
                                 className="w-full sm:w-auto px-16 py-8 bg-blue-600 text-white text-lg font-black rounded-3xl shadow-[0_20px_50px_rgba(37,99,235,0.3)] transition-all"
                             >
-                                Create Free Account
+                                Create Account
                             </motion.button>
                             <motion.button
                                 whileHover={{ scale: 1.05, y: -5 }}
                                 whileTap={{ scale: 0.95 }}
-                                onClick={() => navigate('/login')}
+                                onClick={() => navigate('/join')}
                                 className="w-full sm:w-auto px-16 py-8 bg-white/5 border border-white/10 hover:bg-white/10 text-lg font-black rounded-3xl transition-all"
                             >
-                                Sign In
+                                Join with ID
                             </motion.button>
                         </div>
                     </div>
@@ -421,53 +444,42 @@ export const LandingPage: React.FC = () => {
             <footer className="py-32 border-t border-white/5 bg-black/40 backdrop-blur-3xl relative">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="grid md:grid-cols-4 gap-20 mb-32">
-                        <div className="col-span-2">
-                            <div className="flex items-center gap-4 mb-10">
+                        <div className="col-span-2 text-center md:text-left">
+                            <div className="flex items-center gap-4 mb-10 justify-center md:justify-start">
                                 <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center">
                                     <Shield className="w-7 h-7 text-white" />
                                 </div>
                                 <div className="flex flex-col">
                                     <span className="text-2xl font-black uppercase tracking-tighter">Nexus Meeting</span>
-                                    <span className="text-[10px] font-black text-orange-500 tracking-[0.4em] uppercase">Built for Bharat</span>
+                                    <span className="text-[10px] font-black text-orange-500 tracking-[0.4em] uppercase">Digital Sovereignty</span>
                                 </div>
                             </div>
                             <p className="text-white/30 max-w-sm leading-relaxed mb-10 text-lg font-medium italic">
-                                "Redefining virtual collaboration with high-security infrastructure native to Indian soil."
+                                "Empowering Bharat with secure, world-class virtual collaboration hubs."
                             </p>
-                            <div className="flex gap-6">
-                                <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-blue-600 transition-all cursor-pointer group">
-                                    <Globe className="w-5 h-5 text-white/40 group-hover:text-white" />
-                                </div>
-                                <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-emerald-600 transition-all cursor-pointer group">
-                                    <Smartphone className="w-5 h-5 text-white/40 group-hover:text-white" />
-                                </div>
-                            </div>
                         </div>
-                        <div>
-                            <h4 className="font-black mb-10 text-xs uppercase tracking-[0.4em] text-white/20">Solutions</h4>
+                        <div className="text-center md:text-left">
+                            <h4 className="font-black mb-10 text-xs uppercase tracking-[0.4em] text-white/20">Ecosystem</h4>
                             <ul className="space-y-6">
-                                <li><a href="#" className="text-sm font-black text-white/40 hover:text-white transition-colors uppercase tracking-widest">Enterprise</a></li>
-                                <li><a href="#" className="text-sm font-black text-white/40 hover:text-white transition-colors uppercase tracking-widest">Government</a></li>
-                                <li><a href="#" className="text-sm font-black text-white/40 hover:text-white transition-colors uppercase tracking-widest">Native App</a></li>
-                                <li><a href="#" className="text-sm font-black text-white/40 hover:text-white transition-colors uppercase tracking-widest">Tracking API</a></li>
+                                <li><a href="#" className="text-sm font-black text-white/40 hover:text-white transition-colors uppercase tracking-widest">Pricing</a></li>
+                                <li><a href="#" className="text-sm font-black text-white/40 hover:text-white transition-colors uppercase tracking-widest">Solutions</a></li>
+                                <li><a href="#" className="text-sm font-black text-white/40 hover:text-white transition-colors uppercase tracking-widest">Native Apps</a></li>
                             </ul>
                         </div>
-                        <div>
+                        <div className="text-center md:text-left">
                             <h4 className="font-black mb-10 text-xs uppercase tracking-[0.4em] text-white/20">Trust</h4>
                             <ul className="space-y-6">
                                 <li><a href="#" className="text-sm font-black text-white/40 hover:text-white transition-colors uppercase tracking-widest">Privacy Hub</a></li>
                                 <li><a href="#" className="text-sm font-black text-white/40 hover:text-white transition-colors uppercase tracking-widest">Certifications</a></li>
-                                <li><a href="#" className="text-sm font-black text-white/40 hover:text-white transition-colors uppercase tracking-widest">Made in India</a></li>
-                                <li><a href="#" className="text-sm font-black text-white/40 hover:text-white transition-colors uppercase tracking-widest">Legal</a></li>
+                                <li><a href="#" className="text-sm font-black text-white/40 hover:text-white transition-colors uppercase tracking-widest">Made in Bharat</a></li>
                             </ul>
                         </div>
                     </div>
-                    <div className="pt-16 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-10 text-center md:text-left">
-                        <p className="text-[10px] font-black text-white/10 uppercase tracking-[0.3em]">© 2024 NEXUS BHARAT PORTAL. BUILT FOR DIGITAL SOVEREIGNTY.</p>
+                    <div className="pt-16 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-10">
+                        <p className="text-[10px] font-black text-white/10 uppercase tracking-[0.3em]">© 2024 NEXUS BHARAT PORTAL. BUILT FOR GLOBAL EXCELLENCE.</p>
                         <div className="flex gap-10">
-                            <span className="text-[10px] font-black text-orange-500/40 uppercase tracking-widest">Saffron Security</span>
-                            <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">Pristine Protocol</span>
-                            <span className="text-[10px] font-black text-emerald-500/40 uppercase tracking-widest">Green Latency</span>
+                            <span className="text-[10px] font-black text-orange-500/40 uppercase tracking-widest">Local Sovereignty</span>
+                            <span className="text-[10px] font-black text-emerald-500/40 uppercase tracking-widest">Native Edge</span>
                         </div>
                     </div>
                 </div>
@@ -475,22 +487,3 @@ export const LandingPage: React.FC = () => {
         </div>
     );
 };
-
-// Add necessary icon for CTA
-const UserPlus = ({ className }: { className?: string }) => (
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className={className}
-    >
-        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-        <circle cx="9" cy="7" r="4" />
-        <line x1="19" y1="8" x2="19" y2="14" />
-        <line x1="22" y1="11" x2="16" y2="11" />
-    </svg>
-);
