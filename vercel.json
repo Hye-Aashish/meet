@@ -1,18 +1,5 @@
 {
     "version": 2,
-    "builds": [
-        {
-            "src": "api/index.ts",
-            "use": "@vercel/node"
-        },
-        {
-            "src": "package.json",
-            "use": "@vercel/static-build",
-            "config": {
-                "distDir": "dist"
-            }
-        }
-    ],
     "rewrites": [
         {
             "source": "/api/(.*)",
@@ -20,7 +7,14 @@
         },
         {
             "source": "/(.*)",
-            "destination": "/index.html"
+            "destination": "/$1"
         }
-    ]
+    ],
+    "functions": {
+        "api/index.ts": {
+            "runtime": "vercel-node@latest",
+            "memory": 1024,
+            "maxDuration": 10
+        }
+    }
 }
