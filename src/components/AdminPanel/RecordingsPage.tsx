@@ -32,7 +32,10 @@ export const RecordingsPage: React.FC = () => {
 
     const fetchRecordings = async () => {
         try {
-            const res = await fetch('/api/recordings');
+            const userId = localStorage.getItem('nexus_user_id');
+            const res = await fetch('/api/recordings', {
+                headers: { 'x-user-id': userId || '' }
+            });
             if (res.ok) {
                 const data = await res.json();
                 setRecordings(data);
@@ -87,7 +90,7 @@ export const RecordingsPage: React.FC = () => {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 <div className="p-5 bg-brand-card rounded-2xl border border-white/5">
                     <div className="flex items-center justify-between mb-3">
                         <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
@@ -143,31 +146,31 @@ export const RecordingsPage: React.FC = () => {
                     </p>
                 </div>
             ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                     {filteredRecordings.map((rec) => (
                         <motion.div
                             key={rec.id}
                             whileHover={{ scale: 1.002 }}
-                            className="group flex items-center justify-between p-5 bg-brand-card rounded-2xl border border-white/5 hover:border-white/10 transition-all"
+                            className="group flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-brand-card rounded-2xl border border-white/5 hover:border-white/10 transition-all gap-4"
                         >
                             <div className="flex items-center gap-4">
-                                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-red-500/20 to-red-600/10 flex items-center justify-center border border-red-500/10">
-                                    <Video className="w-6 h-6 text-red-400" />
+                                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-red-500/20 to-red-600/10 flex items-center justify-center border border-red-500/10 shrink-0">
+                                    <Video className="w-5 h-5 sm:w-6 sm:h-6 text-red-400" />
                                 </div>
-                                <div>
-                                    <p className="font-semibold text-sm">{rec.title}</p>
-                                    <div className="flex items-center gap-4 mt-1">
+                                <div className="min-w-0">
+                                    <p className="font-semibold text-sm truncate">{rec.title}</p>
+                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1">
                                         <span className="text-[10px] text-white/30 font-mono uppercase">{rec.roomId}</span>
                                         <span className="text-[10px] text-white/30 flex items-center gap-1">
                                             <Calendar className="w-3 h-3" />
-                                            {new Date(rec.createdAt).toLocaleDateString()} {new Date(rec.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            {new Date(rec.createdAt).toLocaleDateString()}
                                         </span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-6">
-                                <div className="text-right">
+                            <div className="flex items-center justify-between sm:justify-end gap-6 border-t sm:border-t-0 pt-4 sm:pt-0 border-white/5">
+                                <div className="sm:text-right">
                                     <p className="text-xs font-bold text-white/60 flex items-center gap-1.5">
                                         <Clock className="w-3.5 h-3.5" />
                                         {formatDuration(rec.duration)}
@@ -175,15 +178,15 @@ export const RecordingsPage: React.FC = () => {
                                     <p className="text-[10px] text-white/25 mt-0.5">{formatSize(rec.size)}</p>
                                 </div>
 
-                                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                                <div className="flex items-center gap-2">
                                     <motion.button
                                         whileHover={{ scale: 1.1 }}
                                         whileTap={{ scale: 0.9 }}
                                         onClick={() => setDeleteConfirm(rec.id)}
-                                        className="p-2 rounded-lg hover:bg-red-500/10 text-white/30 hover:text-red-400 transition-all"
+                                        className="p-2.5 rounded-xl bg-white/5 sm:bg-transparent sm:hover:bg-red-500/10 text-white/30 hover:text-red-400 transition-all"
                                         title="Delete recording"
                                     >
-                                        <Trash2 className="w-4 h-4" />
+                                        <Trash2 className="w-4.5 h-4.5 sm:w-4 sm:h-4" />
                                     </motion.button>
                                 </div>
                             </div>

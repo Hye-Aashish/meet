@@ -17,3 +17,8 @@ _agents/
 _agent/
 *.exe
 NexusMeeting/
+
+# Database
+*.db
+*.db-shm
+*.db-wal

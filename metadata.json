@@ -1,0 +1,8 @@
+{
+  "name": "Nexus Meeting Portal",
+  "description": "A professional, real-time video conferencing portal with chat and participant management.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}

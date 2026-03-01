@@ -41,6 +41,7 @@ async function startServer() {
   // Mongoose Schemas
   const meetingSchema = new mongoose.Schema({
     id: { type: String, unique: true },
+    owner: String, // User ID who owns this meeting
     title: String,
     roomId: { type: String, unique: true },
     scheduledAt: String,
@@ -68,6 +69,7 @@ async function startServer() {
 
   const recordingSchema = new mongoose.Schema({
     id: { type: String, unique: true },
+    owner: String, // User ID who owns this recording
     title: String,
     roomId: String,
     duration: Number,
@@ -76,7 +78,8 @@ async function startServer() {
   });
 
   const settingsSchema = new mongoose.Schema({
-    key: { type: String, unique: true, default: "global" },
+    key: { type: String, unique: true }, // Can be "global" or UserID
+    owner: String,
     allowMic: { type: Boolean, default: true },
     allowCamera: { type: Boolean, default: true },
     allowScreenShare: { type: Boolean, default: true },
@@ -168,10 +171,13 @@ async function startServer() {
 
   // ========== REST API Routes ==========
 
-  // GET all meetings
+  // GET all meetings (USER SPECIFIC)
   app.get('/api/meetings', async (req, res) => {
     try {
-      const meetings = await Meeting.find().sort({ createdAt: -1 });
+      const userId = req.headers['x-user-id'];
+      if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+      const meetings = await Meeting.find({ owner: userId }).sort({ createdAt: -1 });
       res.json(meetings);
     } catch (err) {
       res.status(500).json({ error: "Failed to fetch meetings" });
@@ -202,9 +208,12 @@ async function startServer() {
     }
   });
 
-  // CREATE meeting
+  // CREATE meeting (USER SPECIFIC)
   app.post('/api/meetings', async (req, res) => {
     try {
+      const userId = req.headers['x-user-id'];
+      if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
       const { title, roomId, scheduledAt, duration, maxParticipants, status, permissions } = req.body;
       const meetingId = `mt_${Date.now()}`;
       const rId = roomId || Math.random().toString(36).substring(2, 10).toUpperCase();
@@ -212,6 +221,7 @@ async function startServer() {
 
       const created = await Meeting.create({
         id: meetingId,
+        owner: userId,
         title: title || `Meeting ${rId}`,
         roomId: rId,
         scheduledAt: scheduledAt || null,
@@ -260,10 +270,13 @@ async function startServer() {
     }
   });
 
-  // ========== Recordings API ==========
+  // ========== Recordings API (USER SPECIFIC) ==========
   app.get('/api/recordings', async (req, res) => {
     try {
-      const recordings = await Recording.find().sort({ createdAt: -1 });
+      const userId = req.headers['x-user-id'];
+      if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+      const recordings = await Recording.find({ owner: userId }).sort({ createdAt: -1 });
       res.json(recordings);
     } catch (err) {
       res.status(500).json({ error: "Failed to fetch recordings" });
@@ -272,10 +285,13 @@ async function startServer() {
 
   app.post('/api/recordings', async (req, res) => {
     try {
+      const userId = req.headers['x-user-id'];
+      // If no userId, it might be an anonymous recording (fallback to roomId or system)
       const { title, roomId, duration, size } = req.body;
       const recordingId = `rec_${Date.now()}`;
       const created = await Recording.create({
         id: recordingId,
+        owner: userId || 'system',
         title: title || `Recording ${roomId}`,
         roomId: roomId || '',
         duration: duration || 0,

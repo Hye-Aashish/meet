@@ -68,7 +68,10 @@ export const MeetingsPage: React.FC = () => {
 
     const fetchMeetings = async () => {
         try {
-            const res = await fetch('/api/meetings');
+            const userId = localStorage.getItem('nexus_user_id');
+            const res = await fetch('/api/meetings', {
+                headers: { 'x-user-id': userId || '' }
+            });
             if (res.ok) {
                 const data = await res.json();
                 setMeetings(data);
@@ -81,9 +84,13 @@ export const MeetingsPage: React.FC = () => {
     const handleCreate = async () => {
         const roomId = Math.random().toString(36).substring(2, 10).toUpperCase();
         try {
+            const userId = localStorage.getItem('nexus_user_id');
             const res = await fetch('/api/meetings', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-user-id': userId || ''
+                },
                 body: JSON.stringify({
                     title: formTitle || `Meeting ${roomId}`,
                     roomId,
@@ -259,7 +266,7 @@ export const MeetingsPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* Meetings Table */}
+            {/* Meetings Table / Cards */}
             {filteredMeetings.length === 0 ? (
                 <div className="p-16 bg-brand-card rounded-2xl border border-white/5 text-center">
                     <Video className="w-16 h-16 text-white/5 mx-auto mb-4" />
@@ -271,133 +278,231 @@ export const MeetingsPage: React.FC = () => {
                     </p>
                 </div>
             ) : (
-                <div className="bg-brand-card rounded-2xl border border-white/5 overflow-hidden">
-                    {/* Table Header */}
-                    <div className="grid grid-cols-12 gap-4 px-6 py-3 border-b border-white/5 text-[10px] font-bold uppercase tracking-widest text-white/30">
-                        <div className="col-span-4">Meeting</div>
-                        <div className="col-span-2">Room ID</div>
-                        <div className="col-span-2">Schedule</div>
-                        <div className="col-span-1">Duration</div>
-                        <div className="col-span-1">Status</div>
-                        <div className="col-span-2 text-right">Actions</div>
+                <>
+                    {/* Desktop Table View */}
+                    <div className="hidden lg:block bg-brand-card rounded-2xl border border-white/5 overflow-hidden">
+                        {/* Table Header */}
+                        <div className="grid grid-cols-12 gap-4 px-6 py-3 border-b border-white/5 text-[10px] font-bold uppercase tracking-widest text-white/30">
+                            <div className="col-span-4">Meeting</div>
+                            <div className="col-span-2">Room ID</div>
+                            <div className="col-span-2">Schedule</div>
+                            <div className="col-span-1">Duration</div>
+                            <div className="col-span-1">Status</div>
+                            <div className="col-span-2 text-right">Actions</div>
+                        </div>
+
+                        {/* Table Body */}
+                        {filteredMeetings.map((meeting) => (
+                            <div
+                                key={meeting.id}
+                                className="group grid grid-cols-12 gap-4 px-6 py-4 border-b border-white/5 hover:bg-white/[0.02] transition-all items-center"
+                            >
+                                <div className="col-span-4 flex items-center gap-3">
+                                    <div className={cn(
+                                        "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
+                                        meeting.status === 'active' ? "bg-emerald-500/10" : meeting.status === 'scheduled' ? "bg-blue-500/10" : "bg-white/5"
+                                    )}>
+                                        <Video className={cn(
+                                            "w-4 h-4",
+                                            meeting.status === 'active' ? "text-emerald-400" : meeting.status === 'scheduled' ? "text-blue-400" : "text-white/20"
+                                        )} />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="font-semibold text-sm truncate">{meeting.title}</p>
+                                        <p className="text-[10px] text-white/20">{new Date(meeting.createdAt).toLocaleDateString()}</p>
+                                    </div>
+                                </div>
+
+                                <div className="col-span-2">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs font-mono text-white/50">{meeting.roomId}</span>
+                                        <button
+                                            onClick={() => handleCopyLink(meeting.roomId)}
+                                            className="text-white/20 hover:text-white/60 transition-all"
+                                        >
+                                            {copiedId === meeting.roomId ? (
+                                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                                            ) : (
+                                                <Copy className="w-3.5 h-3.5" />
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="col-span-2">
+                                    <span className="text-xs text-white/40 flex items-center gap-1">
+                                        <Calendar className="w-3 h-3" />
+                                        {meeting.scheduledAt ? new Date(meeting.scheduledAt).toLocaleDateString() : 'Instant'}
+                                    </span>
+                                </div>
+
+                                <div className="col-span-1">
+                                    <span className="text-xs text-white/40 flex items-center gap-1">
+                                        <Clock className="w-3 h-3" />
+                                        {meeting.duration}m
+                                    </span>
+                                </div>
+
+                                <div className="col-span-1">
+                                    <span className={cn(
+                                        "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider",
+                                        meeting.status === 'active' ? "bg-emerald-500/10 text-emerald-400" :
+                                            meeting.status === 'scheduled' ? "bg-blue-500/10 text-blue-400" :
+                                                "bg-white/5 text-white/30"
+                                    )}>
+                                        {meeting.status}
+                                    </span>
+                                </div>
+
+                                <div className="col-span-2 flex items-center justify-end gap-2">
+                                    {meeting.status !== 'ended' && (
+                                        <motion.button
+                                            whileHover={{ scale: 1.05 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            onClick={() => navigate(`/meeting/${meeting.roomId}`)}
+                                            className="px-3 py-1.5 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 rounded-lg text-xs font-bold transition-all flex items-center gap-1 opacity-0 group-hover:opacity-100"
+                                        >
+                                            Join <ExternalLink className="w-3 h-3" />
+                                        </motion.button>
+                                    )}
+
+                                    <div className="relative">
+                                        <button
+                                            onClick={() => setContextMenu(contextMenu === meeting.id ? null : meeting.id)}
+                                            className="p-1.5 rounded-lg hover:bg-white/5 text-white/30 hover:text-white/60 transition-all"
+                                        >
+                                            <MoreVertical className="w-4 h-4" />
+                                        </button>
+
+                                        <AnimatePresence>
+                                            {contextMenu === meeting.id && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, scale: 0.95 }}
+                                                    animate={{ opacity: 1, scale: 1 }}
+                                                    exit={{ opacity: 0, scale: 0.95 }}
+                                                    className="absolute right-0 top-full mt-1 w-44 bg-brand-card border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden"
+                                                >
+                                                    <button onClick={() => openEditModal(meeting)} className="w-full px-4 py-2.5 text-left text-xs font-medium hover:bg-white/5 transition-colors flex items-center gap-2">
+                                                        <Edit3 className="w-3.5 h-3.5" /> Edit Details
+                                                    </button>
+                                                    <button onClick={() => handleCopyLink(meeting.roomId)} className="w-full px-4 py-2.5 text-left text-xs font-medium hover:bg-white/5 transition-colors flex items-center gap-2">
+                                                        <Link className="w-3.5 h-3.5" /> Copy Link
+                                                    </button>
+                                                    {meeting.status === 'active' && (
+                                                        <button onClick={() => handleEndMeeting(meeting.id)} className="w-full px-4 py-2.5 text-left text-xs font-medium hover:bg-amber-500/10 text-amber-400 transition-colors flex items-center gap-2 border-t border-white/5">
+                                                            <Clock className="w-3.5 h-3.5" /> End Meeting
+                                                        </button>
+                                                    )}
+                                                    <button
+                                                        onClick={() => { setDeleteConfirm(meeting.id); setContextMenu(null); }}
+                                                        className="w-full px-4 py-2.5 text-left text-xs font-bold hover:bg-red-500/10 text-red-400 transition-colors flex items-center gap-2 border-t border-white/5"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" /> Delete
+                                                    </button>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
 
-                    {/* Table Body */}
-                    {filteredMeetings.map((meeting) => (
-                        <div
-                            key={meeting.id}
-                            className="group grid grid-cols-12 gap-4 px-6 py-4 border-b border-white/5 hover:bg-white/[0.02] transition-all items-center"
-                        >
-                            <div className="col-span-4 flex items-center gap-3">
-                                <div className={cn(
-                                    "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
-                                    meeting.status === 'active' ? "bg-emerald-500/10" : meeting.status === 'scheduled' ? "bg-blue-500/10" : "bg-white/5"
-                                )}>
-                                    <Video className={cn(
-                                        "w-4 h-4",
-                                        meeting.status === 'active' ? "text-emerald-400" : meeting.status === 'scheduled' ? "text-blue-400" : "text-white/20"
-                                    )} />
+                    {/* Mobile Card View */}
+                    <div className="lg:hidden space-y-4">
+                        {filteredMeetings.map((meeting) => (
+                            <div key={meeting.id} className="bg-brand-card rounded-2xl border border-white/5 p-5 space-y-4">
+                                <div className="flex items-start justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className={cn(
+                                            "w-10 h-10 rounded-xl flex items-center justify-center",
+                                            meeting.status === 'active' ? "bg-emerald-500/10 text-emerald-400" : meeting.status === 'scheduled' ? "bg-blue-500/10 text-blue-400" : "bg-white/5 text-white/30"
+                                        )}>
+                                            <Video className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-sm">{meeting.title}</h3>
+                                            <p className="text-[10px] text-white/20">{new Date(meeting.createdAt).toLocaleDateString()}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <button
+                                            onClick={() => setContextMenu(contextMenu === meeting.id ? null : meeting.id)}
+                                            className="p-2 text-white/20"
+                                        >
+                                            <MoreVertical className="w-5 h-5" />
+                                        </button>
+                                    </div>
                                 </div>
-                                <div className="min-w-0">
-                                    <p className="font-semibold text-sm truncate">{meeting.title}</p>
-                                    <p className="text-[10px] text-white/20">{new Date(meeting.createdAt).toLocaleDateString()}</p>
+
+                                <div className="grid grid-cols-2 gap-4 py-2">
+                                    <div className="space-y-1">
+                                        <p className="text-[9px] font-bold uppercase tracking-widest text-white/20">Room ID</p>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-mono text-white/50">{meeting.roomId}</span>
+                                            <button onClick={() => handleCopyLink(meeting.roomId)} className="text-white/20">
+                                                {copiedId === meeting.roomId ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-[9px] font-bold uppercase tracking-widest text-white/20">Status</p>
+                                        <span className={cn(
+                                            "inline-block px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider",
+                                            meeting.status === 'active' ? "bg-emerald-500/10 text-emerald-400" : meeting.status === 'scheduled' ? "bg-blue-500/10 text-blue-400" : "bg-white/5 text-white/30"
+                                        )}>
+                                            {meeting.status}
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div className="col-span-2">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs font-mono text-white/50">{meeting.roomId}</span>
-                                    <button
-                                        onClick={() => handleCopyLink(meeting.roomId)}
-                                        className="text-white/20 hover:text-white/60 transition-all"
-                                    >
-                                        {copiedId === meeting.roomId ? (
-                                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                                        ) : (
-                                            <Copy className="w-3.5 h-3.5" />
-                                        )}
-                                    </button>
+                                <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                                    <div className="flex items-center gap-4">
+                                        <span className="text-[10px] text-white/40 flex items-center gap-1">
+                                            <Calendar className="w-3 h-3" />
+                                            {meeting.scheduledAt ? new Date(meeting.scheduledAt).toLocaleDateString() : 'Instant'}
+                                        </span>
+                                        <span className="text-[10px] text-white/40 flex items-center gap-1">
+                                            <Clock className="w-3 h-3" />
+                                            {meeting.duration}m
+                                        </span>
+                                    </div>
+                                    {meeting.status !== 'ended' && (
+                                        <button
+                                            onClick={() => navigate(`/meeting/${meeting.roomId}`)}
+                                            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold"
+                                        >
+                                            Join Meeting
+                                        </button>
+                                    )}
                                 </div>
-                            </div>
 
-                            <div className="col-span-2">
-                                <span className="text-xs text-white/40 flex items-center gap-1">
-                                    <Calendar className="w-3 h-3" />
-                                    {meeting.scheduledAt ? new Date(meeting.scheduledAt).toLocaleDateString() : 'Instant'}
-                                </span>
-                            </div>
-
-                            <div className="col-span-1">
-                                <span className="text-xs text-white/40 flex items-center gap-1">
-                                    <Clock className="w-3 h-3" />
-                                    {meeting.duration}m
-                                </span>
-                            </div>
-
-                            <div className="col-span-1">
-                                <span className={cn(
-                                    "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider",
-                                    meeting.status === 'active' ? "bg-emerald-500/10 text-emerald-400" :
-                                        meeting.status === 'scheduled' ? "bg-blue-500/10 text-blue-400" :
-                                            "bg-white/5 text-white/30"
-                                )}>
-                                    {meeting.status}
-                                </span>
-                            </div>
-
-                            <div className="col-span-2 flex items-center justify-end gap-2">
-                                {meeting.status !== 'ended' && (
-                                    <motion.button
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        onClick={() => navigate(`/meeting/${meeting.roomId}`)}
-                                        className="px-3 py-1.5 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 rounded-lg text-xs font-bold transition-all flex items-center gap-1 opacity-0 group-hover:opacity-100"
-                                    >
-                                        Join <ExternalLink className="w-3 h-3" />
-                                    </motion.button>
-                                )}
-
-                                <div className="relative">
-                                    <button
-                                        onClick={() => setContextMenu(contextMenu === meeting.id ? null : meeting.id)}
-                                        className="p-1.5 rounded-lg hover:bg-white/5 text-white/30 hover:text-white/60 transition-all"
-                                    >
-                                        <MoreVertical className="w-4 h-4" />
-                                    </button>
-
-                                    <AnimatePresence>
-                                        {contextMenu === meeting.id && (
-                                            <motion.div
-                                                initial={{ opacity: 0, scale: 0.95 }}
-                                                animate={{ opacity: 1, scale: 1 }}
-                                                exit={{ opacity: 0, scale: 0.95 }}
-                                                className="absolute right-0 top-full mt-1 w-44 bg-brand-card border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden"
-                                            >
-                                                <button onClick={() => openEditModal(meeting)} className="w-full px-4 py-2.5 text-left text-xs font-medium hover:bg-white/5 transition-colors flex items-center gap-2">
-                                                    <Edit3 className="w-3.5 h-3.5" /> Edit Details
+                                <AnimatePresence>
+                                    {contextMenu === meeting.id && (
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            className="overflow-hidden bg-white/5 rounded-xl mt-2"
+                                        >
+                                            <div className="grid grid-cols-2 p-2 gap-2">
+                                                <button onClick={() => openEditModal(meeting)} className="flex items-center gap-2 px-3 py-2 text-xs text-white/60 bg-white/5 rounded-lg">
+                                                    <Edit3 className="w-3.5 h-3.5" /> Edit
                                                 </button>
-                                                <button onClick={() => handleCopyLink(meeting.roomId)} className="w-full px-4 py-2.5 text-left text-xs font-medium hover:bg-white/5 transition-colors flex items-center gap-2">
-                                                    <Link className="w-3.5 h-3.5" /> Copy Link
-                                                </button>
-                                                {meeting.status === 'active' && (
-                                                    <button onClick={() => handleEndMeeting(meeting.id)} className="w-full px-4 py-2.5 text-left text-xs font-medium hover:bg-amber-500/10 text-amber-400 transition-colors flex items-center gap-2 border-t border-white/5">
-                                                        <Clock className="w-3.5 h-3.5" /> End Meeting
-                                                    </button>
-                                                )}
                                                 <button
                                                     onClick={() => { setDeleteConfirm(meeting.id); setContextMenu(null); }}
-                                                    className="w-full px-4 py-2.5 text-left text-xs font-bold hover:bg-red-500/10 text-red-400 transition-colors flex items-center gap-2 border-t border-white/5"
+                                                    className="flex items-center gap-2 px-3 py-2 text-xs text-red-400 bg-red-500/10 rounded-lg"
                                                 >
                                                     <Trash2 className="w-3.5 h-3.5" /> Delete
                                                 </button>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
-                                </div>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                </>
             )}
 
             {/* Create / Edit Modal */}

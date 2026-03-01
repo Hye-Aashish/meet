@@ -17,7 +17,7 @@ export const JoinScreen: React.FC<JoinScreenProps> = (props) => {
 
   const [name, setName] = useState(user?.name || localStorage.getItem('nexus_user_name') || '');
   const [roomId, setRoomId] = useState('');
-  const [isCreating, setIsCreating] = useState(false);
+  const [isCreating, setIsCreating] = useState(!!user); // If logged in, prioritize "New Meeting" (the "Panel" feel)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -169,20 +169,20 @@ export const JoinScreen: React.FC<JoinScreenProps> = (props) => {
           </form>
         </div>
 
-        <div className="mt-12 grid grid-cols-3 gap-4">
-          <div className="flex flex-col items-center gap-2">
+        <div className="mt-8 lg:mt-12 grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+          <div className="flex flex-col items-center gap-2 p-3 bg-white/[0.02] rounded-2xl border border-white/5 md:bg-transparent md:border-none">
             <div className="w-10 h-10 rounded-xl bg-brand-accent/50 flex items-center justify-center border border-white/5">
               <Globe className="w-5 h-5 text-white/40" />
             </div>
             <span className="text-[10px] font-bold text-white/20 uppercase tracking-tighter">Global Edge</span>
           </div>
-          <div className="flex flex-col items-center gap-2">
+          <div className="flex flex-col items-center gap-2 p-3 bg-white/[0.02] rounded-2xl border border-white/5 md:bg-transparent md:border-none">
             <div className="w-10 h-10 rounded-xl bg-brand-accent/50 flex items-center justify-center border border-white/5">
               <Shield className="w-5 h-5 text-white/40" />
             </div>
             <span className="text-[10px] font-bold text-white/20 uppercase tracking-tighter">End-to-End</span>
           </div>
-          <div className="flex flex-col items-center gap-2">
+          <div className="hidden md:flex flex-col items-center gap-2 p-3">
             <div className="w-10 h-10 rounded-xl bg-brand-accent/50 flex items-center justify-center border border-white/5">
               <Zap className="w-5 h-5 text-white/40" />
             </div>
