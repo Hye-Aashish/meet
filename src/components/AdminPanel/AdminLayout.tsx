@@ -129,13 +129,18 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                     {!collapsed && <span>Collapse</span>}
                 </button>
 
-                {/* Go to meeting */}
+                {/* Logout */}
                 <button
-                    onClick={() => navigate('/')}
-                    className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-white/30 hover:text-white/60 hover:bg-white/5 transition-colors text-xs"
+                    onClick={() => {
+                        localStorage.removeItem('nexus_user');
+                        localStorage.removeItem('nexus_user_name');
+                        localStorage.removeItem('nexus_user_id');
+                        navigate('/login');
+                    }}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-red-500/60 hover:text-red-500 hover:bg-red-500/10 transition-colors text-xs font-bold"
                 >
                     <LogOut className="w-4 h-4" />
-                    {(!collapsed || mobileOpen) && <span>Back to App</span>}
+                    {(!collapsed || mobileOpen) && <span>Logout Panel</span>}
                 </button>
             </div>
         </div>

@@ -28,7 +28,8 @@ import {
     HardDrive,
     Infinity,
     Headphones,
-    Award
+    Award,
+    LogOut
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
@@ -109,14 +110,30 @@ export const LandingPage: React.FC = () => {
                         <a href="#tracking" className="text-[10px] font-black text-white/40 hover:text-white uppercase tracking-widest transition-colors">Tracking</a>
                         <a href="#pricing" className="text-[10px] font-black text-white/40 hover:text-white uppercase tracking-widest transition-colors">Pricing</a>
                         {user ? (
-                            <motion.button
-                                whileHover={{ scale: 1.02, y: -2 }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={() => navigate('/admin')}
-                                className="px-6 py-3 bg-white/5 border border-white/10 hover:bg-white/10 rounded-2xl text-[10px] uppercase tracking-widest font-black transition-all flex items-center gap-2"
-                            >
-                                Dashboard <Layout className="w-3.5 h-3.5" />
-                            </motion.button>
+                            <div className="flex items-center gap-4">
+                                <motion.button
+                                    whileHover={{ scale: 1.02, y: -2 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={() => navigate('/admin')}
+                                    className="px-6 py-3 bg-white/5 border border-white/10 hover:bg-white/10 rounded-2xl text-[10px] uppercase tracking-widest font-black transition-all flex items-center gap-2"
+                                >
+                                    Dashboard <Layout className="w-3.5 h-3.5" />
+                                </motion.button>
+                                <motion.button
+                                    whileHover={{ scale: 1.02, y: -2 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={() => {
+                                        localStorage.removeItem('nexus_user');
+                                        localStorage.removeItem('nexus_user_name');
+                                        localStorage.removeItem('nexus_user_id');
+                                        window.location.reload();
+                                    }}
+                                    className="p-3 bg-red-600/10 border border-red-500/20 hover:bg-red-600/20 rounded-xl text-red-500 transition-all flex items-center justify-center"
+                                    title="Logout"
+                                >
+                                    <LogOut className="w-4 h-4" />
+                                </motion.button>
+                            </div>
                         ) : (
                             <div className="flex items-center gap-4">
                                 <Link to="/login" className="text-[10px] font-black text-white/40 hover:text-white uppercase tracking-widest transition-colors px-4">Login</Link>

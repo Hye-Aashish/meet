@@ -125,6 +125,19 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({ children }) 
                 </div>
 
                 <button
+                    onClick={() => {
+                        localStorage.removeItem('nexus_user');
+                        localStorage.removeItem('nexus_user_name');
+                        localStorage.removeItem('nexus_user_id');
+                        navigate('/login');
+                    }}
+                    className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-red-500/40 hover:text-red-500 hover:bg-red-500/10 transition-all border border-transparent hover:border-red-500/20"
+                >
+                    <LogOut className="w-4 h-4" />
+                    {(!collapsed || mobileOpen) && <span>Secure Logout</span>}
+                </button>
+
+                <button
                     onClick={() => navigate('/')}
                     className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-white/20 hover:text-white/40 hover:bg-white/5 transition-all"
                 >
