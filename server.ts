@@ -459,6 +459,8 @@ async function startServer() {
     });
   });
 
+  // ... socket logic ends ...
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
@@ -467,20 +469,28 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    app.use(express.static(path.join(process.cwd(), "dist")));
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(process.cwd(), "dist", "index.html"));
+    const distPath = path.join(process.cwd(), "dist");
+    app.use(express.static(distPath));
+    // The wildcard catch-all should be handled AFTER all other routes
+    // But Vercel's SPA routing might handle this instead.
+    // However, keeping for standalone builds.
+    app.get("*", (req, res, next) => {
+      if (req.path.startsWith('/api/')) return next();
+      res.sendFile(path.join(distPath, "index.html"));
     });
   }
 
-  server.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
+  return { app, server };
 }
 
-export { startServer };
+export { startServer as createApp };
 
 // If run directly (not imported)
 if (process.argv[1] && (process.argv[1].endsWith('server.ts') || process.argv[1].endsWith('server.js'))) {
-  startServer().catch(err => console.error("❌ Failed to start server:", err));
+  startServer().then(({ server }) => {
+    const PORT = process.env.PORT || 3000;
+    server.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  }).catch(err => console.error("❌ Failed to start server:", err));
 }
