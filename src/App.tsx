@@ -10,6 +10,11 @@ import { MeetingsPage } from './components/AdminPanel/MeetingsPage';
 import { RecordingsPage } from './components/AdminPanel/RecordingsPage';
 import { SettingsPage } from './components/AdminPanel/SettingsPage';
 
+import { SuperAdminLayout } from './components/SuperAdmin/SuperAdminLayout';
+import { SuperAdminDashboard } from './components/SuperAdmin/SuperAdminDashboard';
+import { SuperAdminUsers } from './components/SuperAdmin/SuperAdminUsers';
+import { SuperAdminPlans } from './components/SuperAdmin/SuperAdminPlans';
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -29,6 +34,11 @@ export default function App() {
           <Route path="/admin/participants" element={<AdminLayout><Dashboard /></AdminLayout>} />
           <Route path="/admin/analytics" element={<AdminLayout><Dashboard /></AdminLayout>} />
           <Route path="/admin/settings" element={<AdminLayout><SettingsPage /></AdminLayout>} />
+
+          {/* Super Admin Routes */}
+          <Route path="/nexus-super-portal" element={<SuperAdminLayout><SuperAdminDashboard /></SuperAdminLayout>} />
+          <Route path="/nexus-super-portal/users" element={<SuperAdminLayout><SuperAdminUsers /></SuperAdminLayout>} />
+          <Route path="/nexus-super-portal/plans" element={<SuperAdminLayout><SuperAdminPlans /></SuperAdminLayout>} />
 
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

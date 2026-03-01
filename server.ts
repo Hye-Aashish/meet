@@ -60,12 +60,75 @@ async function startServer() {
     }
   });
 
-  const User = mongoose.model("User", new mongoose.Schema({
+  const userSchema = new mongoose.Schema({
     email: { type: String, unique: true, required: true },
     password: { type: String, required: true },
     name: { type: String, required: true },
+    role: { type: String, default: 'user' }, // 'user' or 'admin'
+    plan: { type: String, default: 'Free Bharat' },
     createdAt: { type: String, default: () => new Date().toISOString() }
-  }));
+  });
+
+  const User = mongoose.model("User", userSchema);
+
+  // ... other schemas ...
+
+  // ========== Super Admin Routes ==========
+  const isAdmin = async (req: any, res: any, next: any) => {
+    const userId = req.headers['x-user-id'];
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+    const user = await User.findById(userId);
+    if (user && user.role === 'admin') {
+      next();
+    } else {
+      res.status(403).json({ error: "Access denied" });
+    }
+  };
+
+  app.get('/api/super/stats', isAdmin, async (req, res) => {
+    try {
+      const totalUsers = await User.countDocuments();
+      const totalMeetings = await Meeting.countDocuments();
+      const activeMeetings = await Meeting.countDocuments({ status: 'active' });
+      const totalRecordings = await Recording.countDocuments();
+
+      const planDistribution = await User.aggregate([
+        { $group: { _id: "$plan", count: { $sum: 1 } } }
+      ]);
+
+      res.json({ totalUsers, totalMeetings, activeMeetings, totalRecordings, planDistribution });
+    } catch (err) {
+      res.status(500).json({ error: "Failed to fetch stats" });
+    }
+  });
+
+  app.get('/api/super/users', isAdmin, async (req, res) => {
+    try {
+      const users = await User.find({}, '-password').sort({ createdAt: -1 });
+      res.json(users);
+    } catch (err) {
+      res.status(500).json({ error: "Failed to fetch users" });
+    }
+  });
+
+  app.put('/api/super/users/:id', isAdmin, async (req, res) => {
+    try {
+      const { plan, role } = req.body;
+      const user = await User.findByIdAndUpdate(req.params.id, { plan, role }, { new: true });
+      res.json(user);
+    } catch (err) {
+      res.status(500).json({ error: "Failed to update user" });
+    }
+  });
+
+  app.delete('/api/super/users/:id', isAdmin, async (req, res) => {
+    try {
+      await User.findByIdAndDelete(req.params.id);
+      res.json({ message: "User deleted" });
+    } catch (err) {
+      res.status(500).json({ error: "Failed to delete user" });
+    }
+  });
 
   const recordingSchema = new mongoose.Schema({
     id: { type: String, unique: true },
@@ -100,8 +163,19 @@ async function startServer() {
       if (existingUser) return res.status(400).json({ error: "User already exists" });
 
       const hashedPassword = await bcrypt.hash(password, 10);
-      const user = await User.create({ name, email, password: hashedPassword });
-      res.status(201).json({ success: true, user: { id: user._id, name: user.name, email: user.email } });
+      const userCount = await User.countDocuments();
+      const role = userCount === 0 ? 'admin' : 'user';
+      const user = await User.create({ name, email, password: hashedPassword, role });
+      res.status(201).json({
+        success: true,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          plan: user.plan
+        }
+      });
     } catch (err) {
       res.status(500).json({ error: "Registration failed" });
     }
@@ -116,7 +190,16 @@ async function startServer() {
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) return res.status(400).json({ error: "Invalid credentials" });
 
-      res.json({ success: true, user: { id: user._id, name: user.name, email: user.email } });
+      res.json({
+        success: true,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          plan: user.plan
+        }
+      });
     } catch (err) {
       res.status(500).json({ error: "Login failed" });
     }
