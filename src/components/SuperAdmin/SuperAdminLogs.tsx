@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
+import { api } from '../../lib/api';
 
 export const SuperAdminLogs: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -25,9 +26,7 @@ export const SuperAdminLogs: React.FC = () => {
     const fetchLogs = async () => {
         setLoading(true);
         try {
-            const res = await fetch('/api/super/logs', {
-                headers: { 'x-user-id': currentUser.id }
-            });
+            const res = await api.get('/api/super/logs');
             const data = await res.json();
             if (res.ok) setLogs(data);
         } catch (err) {
@@ -40,10 +39,7 @@ export const SuperAdminLogs: React.FC = () => {
     const handleClearLogs = async () => {
         if (!window.confirm("FATAL: Permanently purge all system trace logs?")) return;
         try {
-            const res = await fetch('/api/super/logs', {
-                method: 'DELETE',
-                headers: { 'x-user-id': currentUser.id }
-            });
+            const res = await api.delete('/api/super/logs');
             if (res.ok) fetchLogs();
         } catch (err) {
             console.error("Failed to clear logs");

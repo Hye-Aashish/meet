@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
+import { api } from '../../lib/api';
 
 export const SuperAdminUsers: React.FC = () => {
     const [users, setUsers] = useState<any[]>([]);
@@ -29,9 +30,7 @@ export const SuperAdminUsers: React.FC = () => {
 
     const fetchUsers = async () => {
         try {
-            const res = await fetch('/api/super/users', {
-                headers: { 'x-user-id': currentUser.id }
-            });
+            const res = await api.get('/api/super/users');
             const data = await res.json();
             if (res.ok) setUsers(data);
         } catch (err) {
@@ -43,19 +42,12 @@ export const SuperAdminUsers: React.FC = () => {
 
     useEffect(() => {
         fetchUsers();
-    }, [currentUser.id]);
+    }, []);
 
     const handleUpdateUser = async (userId: string, updates: any) => {
         setUpdateLoading(true);
         try {
-            const res = await fetch(`/api/super/users/${userId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-user-id': currentUser.id
-                },
-                body: JSON.stringify(updates)
-            });
+            const res = await api.put(`/api/super/users/${userId}`, updates);
             if (res.ok) {
                 await fetchUsers();
                 setEditingUser(null);
@@ -70,10 +62,7 @@ export const SuperAdminUsers: React.FC = () => {
     const handleDeleteUser = async (userId: string) => {
         if (!window.confirm("FATAL ACTION: Permanently delete this user node?")) return;
         try {
-            const res = await fetch(`/api/super/users/${userId}`, {
-                method: 'DELETE',
-                headers: { 'x-user-id': currentUser.id }
-            });
+            const res = await api.delete(`/api/super/users/${userId}`);
             if (res.ok) fetchUsers();
         } catch (err) {
             console.error("Deletion failed");

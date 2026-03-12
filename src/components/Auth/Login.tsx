@@ -35,6 +35,7 @@ export const Login: React.FC = () => {
 
             const data = await res.json();
             if (res.ok) {
+                localStorage.setItem('nexus_token', data.token);
                 localStorage.setItem('nexus_user', JSON.stringify(data.user));
                 localStorage.setItem('nexus_user_name', data.user.name);
                 localStorage.setItem('nexus_user_id', data.user.id);

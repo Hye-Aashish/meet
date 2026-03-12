@@ -13,6 +13,7 @@ import {
     TrendingUp,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { api } from '../../lib/api';
 
 interface Meeting {
     id: string;
@@ -43,10 +44,7 @@ export const Dashboard: React.FC = () => {
 
     const fetchMeetings = async () => {
         try {
-            const userId = localStorage.getItem('nexus_user_id');
-            const res = await fetch('/api/meetings', {
-                headers: { 'x-user-id': userId || '' }
-            });
+            const res = await api.get('/api/meetings');
             if (res.ok) {
                 const data = await res.json();
                 setMeetings(data);
@@ -65,20 +63,12 @@ export const Dashboard: React.FC = () => {
     const handleCreateInstant = async () => {
         const roomId = Math.random().toString(36).substring(2, 10).toUpperCase();
         try {
-            const userId = localStorage.getItem('nexus_user_id');
-            const res = await fetch('/api/meetings', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-user-id': userId || ''
-                },
-                body: JSON.stringify({
-                    title: newTitle || `Meeting ${roomId}`,
-                    roomId,
-                    status: 'active',
-                    maxParticipants: 50,
-                    duration: 60,
-                }),
+            const res = await api.post('/api/meetings', {
+                title: newTitle || `Meeting ${roomId}`,
+                roomId,
+                status: 'active',
+                maxParticipants: 50,
+                duration: 60,
             });
             if (res.ok) {
                 setShowCreateModal(false);

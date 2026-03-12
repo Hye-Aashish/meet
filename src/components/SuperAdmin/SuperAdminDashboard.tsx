@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../../lib/utils';
+import { api } from '../../lib/api';
 
 export const SuperAdminDashboard: React.FC = () => {
     const [stats, setStats] = useState<any>(null);
@@ -23,9 +24,7 @@ export const SuperAdminDashboard: React.FC = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const res = await fetch('/api/super/stats', {
-                    headers: { 'x-user-id': user.id }
-                });
+                const res = await api.get('/api/super/stats');
                 const data = await res.json();
                 if (res.ok) setStats(data);
             } catch (err) {
@@ -35,7 +34,7 @@ export const SuperAdminDashboard: React.FC = () => {
             }
         };
         fetchStats();
-    }, [user.id]);
+    }, []);
 
     const statCards = [
         { label: "Total Users", value: stats?.totalUsers || "0", icon: Users, color: "red", trend: "+12%" },

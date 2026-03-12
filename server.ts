@@ -7,14 +7,26 @@ import mongoose from "mongoose";
 import dns from "dns";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
+import jwt from "jsonwebtoken";
+import helmet from "helmet";
+import mongoSanitize from "express-mongo-sanitize";
+import rateLimit from "express-rate-limit";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 dotenv.config();
 
+declare global {
+  namespace Express {
+    interface Request {
+      user?: any;
+    }
+  }
+}
+
 // Fix for MongoDB Atlas querySrv ECONNREFUSED issues in some Node.js versions
 dns.setDefaultResultOrder('ipv4first');
 
-async function startServer() {
+async function createApp() {
   const app = express();
   const server = createServer(app);
   const io = new Server(server, {
@@ -25,7 +37,23 @@ async function startServer() {
   });
 
   const PORT = process.env.PORT || 3000;
-  app.use(express.json());
+  const JWT_SECRET = process.env.JWT_SECRET || "default_nexus_secret_change_me_immediately";
+
+  // Security Middleware
+  app.use(helmet({
+    contentSecurityPolicy: false, // Vite needs this disabled in dev
+  }));
+  app.use(mongoSanitize());
+  app.use(express.json({ limit: '10kb' })); // Body limit
+
+  // Rate Limiting
+  const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per window
+    message: { error: "Too many requests, please try again later." }
+  });
+
+  app.use("/api/auth", authLimiter);
 
   // Initialize Gemini
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "AI_KEY_NOT_SET");
@@ -94,8 +122,10 @@ async function startServer() {
     allowScreenShare: { type: Boolean, default: true },
     allowChat: { type: Boolean, default: true },
     allowHandRaise: { type: Boolean, default: true },
-    participantsVisible: { type: Boolean, default: true }
+    participantsVisible: { type: Boolean, default: true },
+    aiApiKey: { type: String, default: "" }
   });
+
 
   const logSchema = new mongoose.Schema({
     event: String,
@@ -121,26 +151,34 @@ async function startServer() {
     }
   };
 
-  // ========== Middleware ==========
+  // ========== Auth Middleware ==========
+  const authenticateToken = (req: any, res: any, next: any) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) return res.status(401).json({ error: "Access denied. No token provided." });
+
+    try {
+      const verified = jwt.verify(token, JWT_SECRET);
+      req.user = verified;
+      next();
+    } catch (err) {
+      res.status(401).json({ error: "Invalid or expired token" });
+    }
+  };
+
   const isAdmin = async (req: any, res: any, next: any) => {
     try {
-      const userId = req.headers['x-user-id'];
-      if (!userId || userId === 'undefined') {
-        return res.status(401).json({ error: "Unauthorized - No UserID" });
+      if (!req.user || req.user.role !== 'admin') {
+        return res.status(403).json({ error: "Access denied. Admin privileges required." });
       }
-      const user = await User.findById(userId);
-      if (user && user.role === 'admin') {
-        next();
-      } else {
-        res.status(403).json({ error: "Access denied" });
-      }
+      next();
     } catch (err: any) {
       res.status(500).json({ error: "Internal Auth Error" });
     }
   };
 
-  // ========== Super Admin Routes ==========
-  app.get('/api/super/stats', isAdmin, async (req, res) => {
+  app.get('/api/super/stats', authenticateToken, isAdmin, async (req, res) => {
     try {
       const totalUsers = await User.countDocuments();
       const totalMeetings = await Meeting.countDocuments();
@@ -172,7 +210,7 @@ async function startServer() {
     }
   });
 
-  app.get('/api/super/users', isAdmin, async (req, res) => {
+  app.get('/api/super/users', authenticateToken, isAdmin, async (req, res) => {
     try {
       const users = await User.find({}, '-password').sort({ createdAt: -1 });
       res.json(users);
@@ -181,28 +219,28 @@ async function startServer() {
     }
   });
 
-  app.put('/api/super/users/:id', isAdmin, async (req, res) => {
+  app.put('/api/super/users/:id', authenticateToken, isAdmin, async (req, res) => {
     try {
       const { plan, role } = req.body;
       const user = await User.findByIdAndUpdate(req.params.id, { plan, role }, { new: true });
-      await createSystemLog('ADMIN_USER_UPDATE', 'system', `Admin updated user: ${user?.email}`, req.headers['x-user-id'] as string);
+      await createSystemLog('ADMIN_USER_UPDATE', 'system', `Admin updated user: ${user?.email}`, req.user.id);
       res.json(user);
     } catch (err) {
       res.status(500).json({ error: "Failed to update user" });
     }
   });
 
-  app.delete('/api/super/users/:id', isAdmin, async (req, res) => {
+  app.delete('/api/super/users/:id', authenticateToken, isAdmin, async (req, res) => {
     try {
       const user = await User.findByIdAndDelete(req.params.id);
-      await createSystemLog('ADMIN_USER_DELETE', 'system', `Admin deleted user: ${user?.email}`, req.headers['x-user-id'] as string);
+      await createSystemLog('ADMIN_USER_DELETE', 'system', `Admin deleted user: ${user?.email}`, req.user.id);
       res.json({ message: "User deleted" });
     } catch (err) {
       res.status(500).json({ error: "Failed to delete user" });
     }
   });
 
-  app.get('/api/super/logs', isAdmin, async (req, res) => {
+  app.get('/api/super/logs', authenticateToken, isAdmin, async (req, res) => {
     try {
       const logs = await Log.find().sort({ createdAt: -1 }).limit(100);
       res.json(logs);
@@ -211,10 +249,10 @@ async function startServer() {
     }
   });
 
-  app.delete('/api/super/logs', isAdmin, async (req, res) => {
+  app.delete('/api/super/logs', authenticateToken, isAdmin, async (req, res) => {
     try {
       await Log.deleteMany({});
-      await createSystemLog('ADMIN_CLEAR_LOGS', 'system', 'Admin cleared all logs', req.headers['x-user-id'] as string);
+      await createSystemLog('ADMIN_CLEAR_LOGS', 'system', 'Admin cleared all logs', req.user.id);
       res.json({ success: true });
     } catch (err) {
       res.status(500).json({ error: "Failed to clear logs" });
@@ -225,9 +263,17 @@ async function startServer() {
   app.post('/api/ai/ask', async (req, res) => {
     try {
       const { roomId, question, context } = req.body;
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+      const apiKey = globalSettings.aiApiKey || process.env.GEMINI_API_KEY;
+
+      if (!apiKey || apiKey === "AI_KEY_NOT_SET") {
+        return res.json({ answer: `[SIMULATION] Based on the context provided for Room ${roomId}, it seems the team is discussing key system parameters. Regarding your question "${question}", I recommend checking the logs.` });
+      }
+
+      const client = new GoogleGenerativeAI(apiKey);
+      const model = client.getGenerativeModel({ model: "gemini-pro" });
 
       const prompt = `
+
         You are Nexus AI, the intelligent assistant for the "Nexus Authority" meeting platform.
         You are helping the host/admin of a meeting.
         
@@ -262,9 +308,17 @@ async function startServer() {
   app.post('/api/ai/summarize', async (req, res) => {
     try {
       const { roomId, context } = req.body;
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+      const apiKey = globalSettings.aiApiKey || process.env.GEMINI_API_KEY;
+
+      if (!apiKey || apiKey === "AI_KEY_NOT_SET") {
+        return res.json({ summary: `[SIMULATION SUMMARY for ${roomId}]\n\n1. Overview: Discussion centered on system stabilization.\n2. Key Points: AI is active in simulation mode.\n3. Decisions: Deploying real API key via Super Admin panel.` });
+      }
+
+      const client = new GoogleGenerativeAI(apiKey);
+      const model = client.getGenerativeModel({ model: "gemini-pro" });
 
       const prompt = `
+
         You are Nexus AI. Summarize the following meeting discussion into a professional, bulleted summary.
         Mention key participants and decisions if found.
         
@@ -306,8 +360,11 @@ async function startServer() {
 
       await createSystemLog('USER_REGISTER', 'auth', `New user registered: ${name}`, user._id.toString(), name);
 
+      const token = jwt.sign({ id: user._id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+
       res.status(201).json({
         success: true,
+        token,
         user: { id: user._id, name: user.name, email: user.email, role: user.role, plan: user.plan }
       });
     } catch (err) {
@@ -325,8 +382,11 @@ async function startServer() {
 
       await createSystemLog('USER_LOGIN', 'auth', `User logged in: ${user.name}`, user._id.toString(), user.name);
 
+      const token = jwt.sign({ id: user._id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+
       res.json({
         success: true,
+        token,
         user: { id: user._id, name: user.name, email: user.email, role: user.role, plan: user.plan }
       });
     } catch (err) {
@@ -353,14 +413,14 @@ async function startServer() {
   };
   await loadGlobalSettings();
 
-  app.get('/api/settings', (req, res) => res.json(globalSettings));
-  app.put('/api/settings', async (req, res) => {
+  app.get('/api/settings', authenticateToken, (req, res) => res.json(globalSettings));
+  app.put('/api/settings', authenticateToken, isAdmin, async (req, res) => {
     try {
       const settings = await Settings.findOneAndUpdate({ key: "global" }, req.body, { new: true, upsert: true });
       const obj = settings.toObject();
       delete obj._id; delete obj.__v; delete obj.key;
       globalSettings = obj;
-      await createSystemLog('SETTINGS_UPDATE', 'system', 'Global settings updated', req.headers['x-user-id'] as string);
+      await createSystemLog('SETTINGS_UPDATE', 'system', 'Global settings updated', req.user.id);
       res.json(globalSettings);
     } catch (err) {
       res.status(500).json({ error: "Failed to update settings" });
@@ -368,11 +428,10 @@ async function startServer() {
   });
 
   // ========== Meetings API ==========
-  app.get('/api/meetings', async (req, res) => {
+  app.get('/api/meetings', authenticateToken, async (req, res) => {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     try {
-      const userId = req.headers['x-user-id'] as string;
-      if (!userId || userId === 'undefined') return res.status(401).json({ error: "Unauthorized" });
+      const userId = req.user.id;
       const meetings = await Meeting.find({ owner: userId }).sort({ createdAt: -1 });
       res.json(meetings);
     } catch (err) {
@@ -380,10 +439,10 @@ async function startServer() {
     }
   });
 
-  app.get('/api/meetings/:id', async (req, res) => {
+  app.get('/api/meetings/:id', authenticateToken, async (req, res) => {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     try {
-      const userId = req.headers['x-user-id'];
+      const userId = req.user.id;
       const meeting = await Meeting.findOne({ id: req.params.id, owner: userId });
       if (!meeting) return res.status(404).json({ error: 'Not found' });
       res.json(meeting);
@@ -392,10 +451,9 @@ async function startServer() {
     }
   });
 
-  app.post('/api/meetings', async (req, res) => {
+  app.post('/api/meetings', authenticateToken, async (req, res) => {
     try {
-      const userId = req.headers['x-user-id'] as string;
-      if (!userId) return res.status(401).json({ error: "Unauthorized" });
+      const userId = req.user.id;
       const { title, roomId, scheduledAt, duration, maxParticipants, status, permissions } = req.body;
       const meetingId = `mt_${Date.now()}`;
       const rId = roomId || Math.random().toString(36).substring(2, 10).toUpperCase();
@@ -466,14 +524,11 @@ async function startServer() {
   return { app, server };
 }
 
-export { createApp };
+export { createApp, createApp as startServer };
 
 if (process.argv[1] && (process.argv[1].endsWith('server.ts') || process.argv[1].endsWith('server.js'))) {
-  startServer().then(({ server }) => {
+  createApp().then(({ server }) => {
     const PORT = process.env.PORT || 3000;
     server.listen(PORT, "0.0.0.0", () => console.log(`Server running on http://localhost:${PORT}`));
   }).catch(err => console.error("❌ Failed to start server:", err));
-}
-function createApp() {
-  throw new Error("Function not implemented.");
 }

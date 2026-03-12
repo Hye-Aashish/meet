@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../../lib/utils';
+import { api } from '../../lib/api';
 
 export const SuperAdminAnalytics: React.FC = () => {
     const [stats, setStats] = useState<any>(null);
@@ -24,9 +25,7 @@ export const SuperAdminAnalytics: React.FC = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const res = await fetch('/api/super/stats', {
-                    headers: { 'x-user-id': user.id }
-                });
+                const res = await api.get('/api/super/stats');
                 const data = await res.json();
                 if (res.ok) setStats(data);
             } catch (err) {
@@ -36,7 +35,7 @@ export const SuperAdminAnalytics: React.FC = () => {
             }
         };
         fetchStats();
-    }, [user.id]);
+    }, []);
 
     if (loading) return (
         <div className="flex flex-col items-center justify-center h-96 gap-6">

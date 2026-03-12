@@ -13,7 +13,9 @@ import {
     Radio,
     HardDrive,
     X,
+    Key,
     Check,
+
     Mic,
     Video,
     Share2,
@@ -23,6 +25,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
+import { api } from '../../lib/api';
 
 export const SuperAdminConfig: React.FC = () => {
     const [config, setConfig] = useState({
@@ -31,8 +34,10 @@ export const SuperAdminConfig: React.FC = () => {
         allowScreenShare: true,
         allowChat: true,
         allowHandRaise: true,
-        participantsVisible: true
+        participantsVisible: true,
+        aiApiKey: ''
     });
+
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -42,7 +47,7 @@ export const SuperAdminConfig: React.FC = () => {
 
     const fetchConfig = async () => {
         try {
-            const res = await fetch('/api/settings');
+            const res = await api.get('/api/settings');
             const data = await res.json();
             if (res.ok) setConfig(data);
         } catch (err) {
@@ -59,14 +64,7 @@ export const SuperAdminConfig: React.FC = () => {
     const handleSave = async () => {
         setSaving(true);
         try {
-            const res = await fetch('/api/settings', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-user-id': currentUser.id
-                },
-                body: JSON.stringify(config)
-            });
+            const res = await api.put('/api/settings', config);
             if (res.ok) {
                 setShowSuccess(true);
                 setTimeout(() => setShowSuccess(false), 3000);
@@ -177,7 +175,31 @@ export const SuperAdminConfig: React.FC = () => {
                             </div>
                         ))}
                     </div>
+
+                    {/* AI API Key Section */}
+                    <div className="pt-10 border-t border-white/5 space-y-6 relative z-10">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-red-600/10 rounded-xl flex items-center justify-center">
+                                <Key className="w-5 h-5 text-red-500" />
+                            </div>
+                            <h4 className="text-sm font-black uppercase tracking-widest">Nexus <span className="text-red-500">AI Key.</span></h4>
+                        </div>
+                        <div className="relative">
+                            <input
+                                type="password"
+                                value={config.aiApiKey}
+                                onChange={(e) => setConfig({ ...config, aiApiKey: e.target.value })}
+                                placeholder="ENTER GOOGLE GEMINI API KEY..."
+                                className="w-full bg-black/40 border border-white/5 focus:border-red-600/50 rounded-2xl py-5 px-8 text-xs font-black tracking-widest outline-none transition-all placeholder:text-white/5"
+                            />
+                            <div className="absolute right-6 top-1/2 -translate-y-1/2 p-2 bg-red-600/10 rounded-lg">
+                                <Lock className="w-3.5 h-3.5 text-red-500/40" />
+                            </div>
+                        </div>
+                        <p className="text-[9px] font-medium text-white/20 uppercase tracking-tight ml-2 italic">This key enables real-time meeting summarization and neural analytics across all clusters.</p>
+                    </div>
                 </div>
+
 
                 {/* Infrastructure Info (Static for now but styled) */}
                 <div className="space-y-8">

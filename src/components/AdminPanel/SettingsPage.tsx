@@ -14,6 +14,7 @@ import {
     Settings,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { api } from '../../lib/api';
 
 interface Permissions {
     allowMic: boolean;
@@ -42,7 +43,7 @@ export const SettingsPage: React.FC = () => {
 
     const fetchSettings = async () => {
         try {
-            const res = await fetch('/api/settings');
+            const res = await api.get('/api/settings');
             if (res.ok) {
                 const data = await res.json();
                 setPermissions(data);
@@ -56,11 +57,7 @@ export const SettingsPage: React.FC = () => {
 
     const handleSave = async () => {
         try {
-            const res = await fetch('/api/settings', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(permissions),
-            });
+            const res = await api.put('/api/settings', permissions);
             if (res.ok) {
                 setSaved(true);
                 setTimeout(() => setSaved(false), 3000);

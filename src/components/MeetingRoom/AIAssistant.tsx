@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Bot, Send, Sparkles, MessageSquare, History, X, Brain, Zap, Wand2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
+import { api } from '../../lib/api';
 
 interface AIAssistantProps {
     roomId: string;
@@ -33,14 +34,10 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ roomId, messages, onCl
         setLoading(true);
 
         try {
-            const res = await fetch('/api/ai/ask', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    roomId,
-                    question: userText,
-                    context: messages.map(m => `${m.name}: ${m.text}`).join('\n')
-                })
+            const res = await api.post('/api/ai/ask', {
+                roomId,
+                question: userText,
+                context: messages.map(m => `${m.name}: ${m.text}`).join('\n')
             });
             const data = await res.json();
             setAiMessages(prev => [...prev, { role: 'ai', text: data.answer || "I'm sorry, I couldn't process that request." }]);
@@ -57,13 +54,9 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ roomId, messages, onCl
         setAiMessages(prev => [...prev, { role: 'user', text: "Generate a summary of this meeting." }]);
 
         try {
-            const res = await fetch('/api/ai/summarize', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    roomId,
-                    context: messages.map(m => `${m.name}: ${m.text}`).join('\n')
-                })
+            const res = await api.post('/api/ai/summarize', {
+                roomId,
+                context: messages.map(m => `${m.name}: ${m.text}`).join('\n')
             });
             const data = await res.json();
             setAiMessages(prev => [...prev, { role: 'ai', text: data.summary || "I couldn't generate a summary at this moment." }]);

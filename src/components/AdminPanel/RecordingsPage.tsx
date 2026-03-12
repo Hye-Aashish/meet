@@ -11,6 +11,7 @@ import {
     Download,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { api } from '../../lib/api';
 
 interface Recording {
     id: string;
@@ -32,10 +33,7 @@ export const RecordingsPage: React.FC = () => {
 
     const fetchRecordings = async () => {
         try {
-            const userId = localStorage.getItem('nexus_user_id');
-            const res = await fetch('/api/recordings', {
-                headers: { 'x-user-id': userId || '' }
-            });
+            const res = await api.get('/api/recordings');
             if (res.ok) {
                 const data = await res.json();
                 setRecordings(data);
@@ -47,11 +45,7 @@ export const RecordingsPage: React.FC = () => {
 
     const handleDelete = async (id: string) => {
         try {
-            const userId = localStorage.getItem('nexus_user_id');
-            const res = await fetch(`/api/recordings/${id}`, {
-                method: 'DELETE',
-                headers: { 'x-user-id': userId || '' }
-            });
+            const res = await api.delete(`/api/recordings/${id}`);
             if (res.ok) {
                 setDeleteConfirm(null);
                 fetchRecordings();

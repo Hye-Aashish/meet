@@ -25,6 +25,7 @@ import {
     Hand,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { api } from '../../lib/api';
 
 interface Meeting {
     id: string;
@@ -68,10 +69,7 @@ export const MeetingsPage: React.FC = () => {
 
     const fetchMeetings = async () => {
         try {
-            const userId = localStorage.getItem('nexus_user_id');
-            const res = await fetch('/api/meetings', {
-                headers: { 'x-user-id': userId || '' }
-            });
+            const res = await api.get('/api/meetings');
             if (res.ok) {
                 const data = await res.json();
                 setMeetings(data);
@@ -84,29 +82,21 @@ export const MeetingsPage: React.FC = () => {
     const handleCreate = async () => {
         const roomId = Math.random().toString(36).substring(2, 10).toUpperCase();
         try {
-            const userId = localStorage.getItem('nexus_user_id');
-            const res = await fetch('/api/meetings', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-user-id': userId || ''
+            const res = await api.post('/api/meetings', {
+                title: formTitle || `Meeting ${roomId}`,
+                roomId,
+                status: formSchedule ? 'scheduled' : 'active',
+                scheduledAt: formSchedule || null,
+                maxParticipants: formMaxParticipants,
+                duration: formDuration,
+                permissions: {
+                    allowMic: permAllowMic,
+                    allowCamera: permAllowCamera,
+                    allowScreenShare: permAllowScreenShare,
+                    allowChat: permAllowChat,
+                    allowHandRaise: permAllowHandRaise,
+                    participantsVisible: permParticipantsVisible,
                 },
-                body: JSON.stringify({
-                    title: formTitle || `Meeting ${roomId}`,
-                    roomId,
-                    status: formSchedule ? 'scheduled' : 'active',
-                    scheduledAt: formSchedule || null,
-                    maxParticipants: formMaxParticipants,
-                    duration: formDuration,
-                    permissions: {
-                        allowMic: permAllowMic,
-                        allowCamera: permAllowCamera,
-                        allowScreenShare: permAllowScreenShare,
-                        allowChat: permAllowChat,
-                        allowHandRaise: permAllowHandRaise,
-                        participantsVisible: permParticipantsVisible,
-                    },
-                }),
             });
             if (res.ok) {
                 setShowCreateModal(false);
@@ -121,27 +111,19 @@ export const MeetingsPage: React.FC = () => {
     const handleUpdate = async () => {
         if (!editingMeeting) return;
         try {
-            const userId = localStorage.getItem('nexus_user_id');
-            const res = await fetch(`/api/meetings/${editingMeeting.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-user-id': userId || ''
+            const res = await api.put(`/api/meetings/${editingMeeting.id}`, {
+                title: formTitle,
+                scheduledAt: formSchedule || null,
+                maxParticipants: formMaxParticipants,
+                duration: formDuration,
+                permissions: {
+                    allowMic: permAllowMic,
+                    allowCamera: permAllowCamera,
+                    allowScreenShare: permAllowScreenShare,
+                    allowChat: permAllowChat,
+                    allowHandRaise: permAllowHandRaise,
+                    participantsVisible: permParticipantsVisible,
                 },
-                body: JSON.stringify({
-                    title: formTitle,
-                    scheduledAt: formSchedule || null,
-                    maxParticipants: formMaxParticipants,
-                    duration: formDuration,
-                    permissions: {
-                        allowMic: permAllowMic,
-                        allowCamera: permAllowCamera,
-                        allowScreenShare: permAllowScreenShare,
-                        allowChat: permAllowChat,
-                        allowHandRaise: permAllowHandRaise,
-                        participantsVisible: permParticipantsVisible,
-                    },
-                }),
             });
             if (res.ok) {
                 setEditingMeeting(null);
@@ -155,11 +137,7 @@ export const MeetingsPage: React.FC = () => {
 
     const handleDelete = async (id: string) => {
         try {
-            const userId = localStorage.getItem('nexus_user_id');
-            const res = await fetch(`/api/meetings/${id}`, {
-                method: 'DELETE',
-                headers: { 'x-user-id': userId || '' }
-            });
+            const res = await api.delete(`/api/meetings/${id}`);
             if (res.ok) {
                 setDeleteConfirm(null);
                 fetchMeetings();
@@ -171,15 +149,7 @@ export const MeetingsPage: React.FC = () => {
 
     const handleEndMeeting = async (id: string) => {
         try {
-            const userId = localStorage.getItem('nexus_user_id');
-            const res = await fetch(`/api/meetings/${id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-user-id': userId || ''
-                },
-                body: JSON.stringify({ status: 'ended' }),
-            });
+            const res = await api.put(`/api/meetings/${id}`, { status: 'ended' });
             if (res.ok) {
                 setContextMenu(null);
                 fetchMeetings();

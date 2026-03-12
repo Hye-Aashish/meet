@@ -30,7 +30,11 @@ export const Register: React.FC = () => {
 
             const data = await res.json();
             if (res.ok) {
-                navigate('/login');
+                localStorage.setItem('nexus_token', data.token);
+                localStorage.setItem('nexus_user', JSON.stringify(data.user));
+                localStorage.setItem('nexus_user_name', data.user.name);
+                localStorage.setItem('nexus_user_id', data.user.id);
+                navigate('/');
             } else {
                 setError(data.error || 'Registration failed');
             }
