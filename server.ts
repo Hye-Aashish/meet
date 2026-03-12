@@ -528,7 +528,7 @@ export { createApp, createApp as startServer };
 
 if (process.argv[1] && (process.argv[1].endsWith('server.ts') || process.argv[1].endsWith('server.js'))) {
   createApp().then(({ server }) => {
-    const PORT = process.env.PORT || 3000;
+    const PORT = parseInt(process.env.PORT || "3000", 10);
     server.listen(PORT, "0.0.0.0", () => console.log(`Server running on http://localhost:${PORT}`));
   }).catch(err => console.error("❌ Failed to start server:", err));
 }
